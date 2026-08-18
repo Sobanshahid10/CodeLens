@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codelens-ast-parser"
+version = "0.1.0"
+description = "Multi-language AST Parser for CodeLens"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "tree-sitter>=0.21.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

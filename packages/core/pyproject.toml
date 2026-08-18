@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codelens-core"
+version = "0.1.0"
+description = "Core configuration, logging, and utility modules for CodeLens"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "structlog>=24.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
