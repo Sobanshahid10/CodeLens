@@ -1,32 +1,36 @@
+from __future__ import annotations
+
 import os
 
 from celery import Celery
 
-broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
-result_backend = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+broker_url = os.environ.get(
+    "CELERY_BROKER_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+)
+result_backend = os.environ.get(
+    "CELERY_RESULT_BACKEND", os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+)
 
 celery_app = Celery(
     "codelens_worker",
     broker=broker_url,
     backend=result_backend,
-    include=[],
+    include=["apps.worker.tasks.indexing"],
 )
 
-celery_app.conf.update(
-    task_serializer="json",
-    accept_content=["json"],
-    result_serializer="json",
-    timezone="UTC",
-    enable_utc=True,
-    result_expires=3600,
-    task_routes={
-        "apps.worker.tasks.index.*": {"queue": "high"},
-        "apps.worker.tasks.embed.*": {"queue": "default"},
-        "apps.worker.tasks.cleanup.*": {"queue": "low"},
-    },
-    task_track_started=True,
-    worker_prefetch_multiplier=1,
-)
+celery_app.conf.task_routes = {
+    "apps.worker.tasks.indexing.clone_repository": {"queue": "high"},
+    "apps.worker.tasks.indexing.embed_and_index_batch": {"queue": "default"},
+    "apps.worker.tasks.indexing.build_dependency_graph": {"queue": "low"},
+    "apps.worker.tasks.indexing.finalize_indexing": {"queue": "default"},
+    "apps.worker.tasks.indexing.start_indexing_pipeline": {"queue": "high"},
+}
+
+celery_app.conf.task_serializer = "json"
+celery_app.conf.result_serializer = "json"
+celery_app.conf.accept_content = ["json"]
+celery_app.conf.result_expires = 3600
+
 
 @celery_app.task(name="health_check")  # type: ignore[untyped-decorator]
 def worker_health_check() -> dict[str, str]:
