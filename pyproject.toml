@@ -6,10 +6,11 @@ target-version = "py312"
 select = ["E", "F", "I", "N", "UP", "ANN", "ASYNC", "S", "TCH"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "ANN", "TC001", "TC002", "TC003"]
-"apps/api/tests/*" = ["S101", "ANN", "TC001", "TC002", "TC003"]
-"apps/worker/tests/*" = ["S101", "ANN", "TC001", "TC002", "TC003"]
+"tests/*" = ["S101", "S105", "S106", "ANN", "TC001", "TC002", "TC003"]
+"apps/api/tests/*" = ["S101", "S105", "S106", "ANN", "TC001", "TC002", "TC003"]
+"apps/worker/tests/*" = ["S101", "S105", "S106", "ANN", "TC001", "TC002", "TC003"]
 "apps/api/alembic/*" = ["ANN", "E501"]
+"apps/api/app/*" = ["TC001", "TC002", "TC003", "S105", "S106", "S108"]
 "packages/*" = ["TC001", "TC002", "TC003"]
 "apps/worker/tasks/*" = ["TC001", "TC002", "TC003", "ANN", "S108"]
 

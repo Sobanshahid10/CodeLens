@@ -1,6 +1,6 @@
 import uuid
 
-from app.db.models import (
+from apps.api.app.db.models import (
     ASTChunk,
     ChatMessage,
     ChatSession,
@@ -10,7 +10,7 @@ from app.db.models import (
     User,
     WebhookEvent,
 )
-from app.db.session import Base
+from apps.api.app.db.session import Base
 
 
 def test_models_registered_in_metadata() -> None:

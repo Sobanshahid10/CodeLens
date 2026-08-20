@@ -44,11 +44,7 @@ class GeminiProvider(BaseLLMProvider):
             if isinstance(result, dict) and "embeddings" in result
             else result.get("embedding", [])
         )
-        vectors = (
-            embeddings
-            if (embeddings and isinstance(embeddings[0], list))
-            else [embeddings]
-        )
+        vectors = embeddings if (embeddings and isinstance(embeddings[0], list)) else [embeddings]
         return EmbeddingResult(
             vectors=vectors,
             model=self.embedding_model_name,
@@ -72,13 +68,9 @@ class GeminiProvider(BaseLLMProvider):
             contents.append({"role": role, "parts": [m.get("content", "")]})
 
         def _stream() -> list[object]:
-            generation_config = genai.types.GenerationConfig(
-                max_output_tokens=max_tokens
-            )
+            generation_config = genai.types.GenerationConfig(max_output_tokens=max_tokens)
             return list(
-                model.generate_content(
-                    contents, stream=True, generation_config=generation_config
-                )
+                model.generate_content(contents, stream=True, generation_config=generation_config)
             )
 
         response = await loop.run_in_executor(None, _stream)

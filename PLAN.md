@@ -347,17 +347,18 @@
    import hashlib
    from dataclasses import dataclass, field
 
+
    @dataclass
    class ASTChunk:
-       chunk_id: str        # SHA256(file_path:start_line:end_line)[:36]
+       chunk_id: str  # SHA256(file_path:start_line:end_line)[:36]
        file_path: str
        language: str
-       node_type: str       # e.g. "function_definition", "class_declaration"
+       node_type: str  # e.g. "function_definition", "class_declaration"
        function_name: str | None
        docstring: str | None
        source_code: str
-       start_line: int      # 1-indexed
-       end_line: int        # 1-indexed
+       start_line: int  # 1-indexed
+       end_line: int  # 1-indexed
        imports: list[str] = field(default_factory=list)
        cyclomatic_complexity: int = 1
 
@@ -416,16 +417,19 @@
    from dataclasses import dataclass
    from typing import AsyncIterator
 
+
    @dataclass
    class EmbeddingResult:
        vectors: list[list[float]]
        model: str
        total_tokens: int
 
+
    @dataclass
    class ChatChunk:
        delta: str
        finish_reason: str | None
+
 
    class BaseLLMProvider(ABC):
        @abstractmethod
@@ -469,6 +473,7 @@
    from .providers.anthropic_provider import AnthropicProvider
    from .providers.gemini_provider import GeminiProvider
 
+
    def get_provider() -> BaseLLMProvider:
        provider = os.environ.get("LLM_PROVIDER", "openai").lower()
        match provider:
@@ -494,7 +499,7 @@
        include=["apps.worker.tasks.indexing"],
    )
    celery_app.conf.task_routes = {
-       "apps.worker.tasks.indexing.clone_repository":    {"queue": "high"},
+       "apps.worker.tasks.indexing.clone_repository": {"queue": "high"},
        "apps.worker.tasks.indexing.embed_and_index_batch": {"queue": "default"},
        "apps.worker.tasks.indexing.build_dependency_graph": {"queue": "low"},
    }
@@ -526,11 +531,7 @@
                  hnsw_config=HnswConfigDiff(m=24, ef_construct=128),
              )
          },
-         sparse_vectors_config={
-             "sparse": SparseVectorParams(
-                 index=SparseIndexParams(on_disk=False)
-             )
-         },
+         sparse_vectors_config={"sparse": SparseVectorParams(index=SparseIndexParams(on_disk=False))},
      )
      await client.create_payload_index(
          collection_name="code_chunks",
@@ -550,6 +551,7 @@
    from pathlib import Path
    import git
 
+
    def main() -> None:
        parser = argparse.ArgumentParser()
        parser.add_argument("--url", required=True, help="GitHub repo URL to index")
@@ -557,9 +559,11 @@
        args = parser.parse_args()
 
        from apps.worker.tasks.indexing import start_indexing_pipeline
+
        result = start_indexing_pipeline.delay(args.repo_id, args.url)
        print(f"Indexing task queued: {result.id}")
        print("Monitor progress at http://localhost:5555")
+
 
    if __name__ == "__main__":
        main()
@@ -600,6 +604,7 @@
    ```python
    from pydantic_settings import BaseSettings
 
+
    class Settings(BaseSettings):
        ENVIRONMENT: str = "development"
        DATABASE_URL: str
@@ -618,6 +623,7 @@
 
        class Config:
            env_file = ".env"
+
 
    settings = Settings()
    ```

@@ -18,6 +18,4 @@ def get_provider() -> BaseLLMProvider:
         case "gemini":
             return GeminiProvider(api_key=os.environ.get("GOOGLE_API_KEY"))
         case _:
-            raise ValueError(
-                f"Unknown provider: {provider}. Choose: openai | anthropic | gemini"
-            )
+            raise ValueError(f"Unknown provider: {provider}. Choose: openai | anthropic | gemini")

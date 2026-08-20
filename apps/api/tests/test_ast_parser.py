@@ -60,13 +60,13 @@ def test_docstring_extraction(parser: ASTParser, temp_py_file: Path) -> None:
 def test_import_extraction(parser: ASTParser, tmp_path: Path) -> None:
     """Test import statement extraction."""
     file = tmp_path / "imports.py"
-    file.write_text('''
+    file.write_text("""
 import os
 from pathlib import Path
 
 def work():
     pass
-''')
+""")
     chunks = parser.parse_file(file)
     assert len(chunks) > 0
     imports = chunks[0].imports
@@ -85,7 +85,7 @@ def test_skip_large_files(parser: ASTParser, tmp_path: Path) -> None:
 def test_cyclomatic_complexity(parser: ASTParser, tmp_path: Path) -> None:
     """Test cyclomatic complexity calculation."""
     file = tmp_path / "complex.py"
-    file.write_text('''
+    file.write_text("""
 def check_value(x):
     if x > 0:
         if x > 10:
@@ -94,7 +94,7 @@ def check_value(x):
             return "medium"
     else:
         return "small"
-''')
+""")
     chunks = parser.parse_file(file)
     assert len(chunks) > 0
     # Counts if statements → complexity >= 2
@@ -104,7 +104,7 @@ def check_value(x):
 def test_parse_go_methods(parser: ASTParser, tmp_path: Path) -> None:
     """Test extraction of Go methods and types."""
     go_file = tmp_path / "main.go"
-    go_file.write_text('''
+    go_file.write_text("""
 package main
 
 import "fmt"
@@ -118,7 +118,7 @@ func (s *Service) Execute() error {
 func main() {
     fmt.Println("run")
 }
-''')
+""")
     chunks = parser.parse_file(go_file)
     assert len(chunks) >= 2
     names = [c.function_name for c in chunks]

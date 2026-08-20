@@ -2,8 +2,9 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
-from app.db.session import Base
 from sqlalchemy import engine_from_config, pool
+
+from apps.api.app.db.session import Base
 
 # Alembic Config object
 config = context.config

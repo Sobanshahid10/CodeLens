@@ -1,4 +1,4 @@
-from app.db.models import (
+from .models import (
     ASTChunk,
     ChatMessage,
     ChatSession,
@@ -8,7 +8,7 @@ from app.db.models import (
     User,
     WebhookEvent,
 )
-from app.db.session import Base, SessionLocal, async_engine, engine, get_db
+from .session import Base, SessionLocal, async_engine, engine, get_db
 
 __all__ = [
     "ASTChunk",

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from celery import Celery
+from celery import Celery  # type: ignore[import-untyped]
 
 broker_url = os.environ.get(
     "CELERY_BROKER_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/0")

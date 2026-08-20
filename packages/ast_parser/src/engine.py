@@ -311,9 +311,7 @@ class ASTParser:
         function_name = self._extract_name(node, language)
         docstring = self._extract_docstring(node, source_text, language)
 
-        chunk_id = hashlib.sha256(
-            f"{file_path}:{start_line}:{end_line}".encode()
-        ).hexdigest()[:36]
+        chunk_id = hashlib.sha256(f"{file_path}:{start_line}:{end_line}".encode()).hexdigest()[:36]
 
         return ASTChunk(
             chunk_id=chunk_id,

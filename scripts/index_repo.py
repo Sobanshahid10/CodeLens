@@ -12,13 +12,9 @@ from apps.worker.tasks.indexing import start_indexing_pipeline
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Index a GitHub repository into CodeLens"
-    )
+    parser = argparse.ArgumentParser(description="Index a GitHub repository into CodeLens")
     parser.add_argument("--url", required=True, help="GitHub repo URL to index")
-    parser.add_argument(
-        "--repo-id", default="test-repo-001", help="Unique repo identifier"
-    )
+    parser.add_argument("--repo-id", default="test-repo-001", help="Unique repo identifier")
 
     args = parser.parse_args()
 

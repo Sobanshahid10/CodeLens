@@ -4,6 +4,7 @@ from collections.abc import AsyncGenerator
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import NullPool
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
@@ -13,16 +14,21 @@ DATABASE_URL = os.getenv(
 # Convert standard postgres URL to asyncpg driver if needed for async engine
 ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
+
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy declarative models."""
+
     pass
+
 
 # Synchronous engine for Alembic and worker tasks
 engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Asynchronous engine for FastAPI web endpoints
-async_engine = create_async_engine(ASYNC_DATABASE_URL, echo=False, pool_pre_ping=True)
+async_engine = create_async_engine(
+    ASYNC_DATABASE_URL, echo=False, pool_pre_ping=True, poolclass=NullPool
+)
 AsyncSessionLocal = async_sessionmaker(
     bind=async_engine,
     class_=AsyncSession,
@@ -30,6 +36,7 @@ AsyncSessionLocal = async_sessionmaker(
     autocommit=False,
     autoflush=False,
 )
+
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for obtaining an asynchronous database session."""

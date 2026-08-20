@@ -11,8 +11,8 @@ from typing import Any
 
 import git
 import redis
-from celery import chord, group
-from celery.utils.log import get_task_logger
+from celery import chord, group  # type: ignore[import-untyped]
+from celery.utils.log import get_task_logger  # type: ignore[import-untyped]
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import (
     Distance,
@@ -34,9 +34,7 @@ logger = get_task_logger(__name__)
 
 def _get_redis_client() -> redis.Redis | None:
     try:
-        redis_url = os.environ.get(
-            "REDIS_URL", "redis://:redis_password_change_me@redis:6379/0"
-        )
+        redis_url = os.environ.get("REDIS_URL", "redis://:redis_password_change_me@redis:6379/0")
         return redis.Redis.from_url(redis_url)
     except Exception:
         return None
@@ -199,9 +197,7 @@ async def _ensure_collection(client: AsyncQdrantClient, dimensions: int) -> None
                 )
             },
             sparse_vectors_config={
-                "sparse": SparseVectorParams(
-                    index=SparseIndexParams(on_disk=False)
-                )
+                "sparse": SparseVectorParams(index=SparseIndexParams(on_disk=False))
             },
         )
 
@@ -221,9 +217,7 @@ def build_dependency_graph(results: list[int] | None, repo_id: str, clone_path: 
     for file_path in Path(clone_path).rglob("*.py"):
         try:
             content = file_path.read_text(errors="ignore")
-            for _ in re.finditer(
-                r"^(?:from|import)\s+([^\s]+)", content, re.MULTILINE
-            ):
+            for _ in re.finditer(r"^(?:from|import)\s+([^\s]+)", content, re.MULTILINE):
                 edge_count += 1
         except OSError:
             pass
@@ -284,19 +278,14 @@ def start_indexing_pipeline(self: Any, repo_id: str, clone_url: str) -> None:
 
     # Step 3: Batch and embed
     batch_size = 100
-    batches = [
-        chunk_dicts[i : i + batch_size]
-        for i in range(0, len(chunk_dicts), batch_size)
-    ]
+    batches = [chunk_dicts[i : i + batch_size] for i in range(0, len(chunk_dicts), batch_size)]
 
     if not batches:
         logger.info("No code chunks found to index.")
         build_dependency_graph.apply_async(args=[[], repo_id, clone_result])
         return
 
-    embed_tasks = group(
-        embed_and_index_batch.s(repo_id, batch) for batch in batches
-    )
+    embed_tasks = group(embed_and_index_batch.s(repo_id, batch) for batch in batches)
 
     # Step 4: Build dependency graph on chord completion
     graph_task = build_dependency_graph.s(repo_id, clone_result)
