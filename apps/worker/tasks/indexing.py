@@ -16,7 +16,11 @@ from celery.utils.log import get_task_logger  # type: ignore[import-untyped]
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import (
     Distance,
+    FieldCondition,
+    Filter,
     HnswConfigDiff,
+    MatchAny,
+    MatchValue,
     PayloadSchemaType,
     PointStruct,
     SparseIndexParams,
@@ -293,3 +297,118 @@ def start_indexing_pipeline(self: Any, repo_id: str, clone_url: str) -> None:
     # Execute with chord pattern: wait for all embeds, then run graph
     chord(embed_tasks)(graph_task)
     logger.info(f"Indexing pipeline chord queued for {repo_id}")
+
+
+@celery_app.task(  # type: ignore[untyped-decorator]
+    name="apps.worker.tasks.indexing.incremental_reindex", bind=True
+)
+def incremental_reindex(
+    self: Any,
+    repo_id: str,
+    changed_files: list[str],
+    removed_files: list[str],
+    new_sha: str = "",
+) -> None:
+    """Incrementally re-index changed and removed files following webhook push events."""
+    logger.info(
+        f"Starting incremental re-indexing for {repo_id}: "
+        f"{len(changed_files)} changed, {len(removed_files)} removed"
+    )
+    _publish_progress(
+        repo_id,
+        "indexing",
+        30,
+        f"Processing {len(changed_files)} changed files and {len(removed_files)} deletions...",
+    )
+    return asyncio.run(
+        _incremental_reindex_async(repo_id, changed_files, removed_files, new_sha)
+    )
+
+
+async def _incremental_reindex_async(
+    repo_id: str,
+    changed_files: list[str],
+    removed_files: list[str],
+    new_sha: str = "",
+) -> None:
+    """Async helper for incremental Qdrant vector deletion and partial AST re-embedding."""
+    qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
+    qdrant_api_key = os.environ.get("QDRANT_API_KEY")
+    client = AsyncQdrantClient(url=qdrant_url, api_key=qdrant_api_key)
+
+    try:
+        # 1. Delete points for removed files
+        if removed_files:
+            logger.info(
+                f"Deleting Qdrant points for removed files in repo {repo_id}: {removed_files}"
+            )
+            await client.delete(
+                collection_name="code_chunks",
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(key="file_path", match=MatchAny(any=removed_files)),
+                        FieldCondition(key="repo_id", match=MatchValue(value=repo_id)),
+                    ]
+                ),
+            )
+
+        # 2. Delete old points for changed files, then re-parse & re-embed
+        if changed_files:
+            logger.info(
+                f"Deleting stale points for modified files in repo {repo_id}: {changed_files}"
+            )
+            await client.delete(
+                collection_name="code_chunks",
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(key="file_path", match=MatchAny(any=changed_files)),
+                        FieldCondition(key="repo_id", match=MatchValue(value=repo_id)),
+                    ]
+                ),
+            )
+
+            # Re-parse changed files from local cloned repo
+            clone_path = Path(f"/tmp/codelens/{repo_id}")
+            parser = ASTParser()
+            new_chunk_dicts = []
+
+            for rel_path in changed_files:
+                file_path = (
+                    clone_path / rel_path
+                    if not Path(rel_path).is_absolute()
+                    else Path(rel_path)
+                )
+                if file_path.exists() and file_path.is_file():
+                    file_chunks = parser.parse_file(file_path)
+                    for c in file_chunks:
+                        new_chunk_dicts.append(
+                            {
+                                "chunk_id": c.chunk_id,
+                                "file_path": rel_path,
+                                "language": c.language,
+                                "node_type": c.node_type,
+                                "function_name": c.function_name,
+                                "docstring": c.docstring,
+                                "source_code": c.source_code,
+                                "start_line": c.start_line,
+                                "end_line": c.end_line,
+                                "imports": c.imports,
+                                "embedding_context": c.embedding_context,
+                            }
+                        )
+
+            if new_chunk_dicts:
+                logger.info(
+                    f"Embedding and upserting {len(new_chunk_dicts)} new chunks for {repo_id}"
+                )
+                await _embed_and_index_async(repo_id, new_chunk_dicts)
+
+        _publish_progress(
+            repo_id,
+            "complete",
+            100,
+            f"Incremental re-indexing completed for {len(changed_files)} changed files.",
+        )
+    finally:
+        await client.close()
+

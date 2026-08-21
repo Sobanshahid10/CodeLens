@@ -95,9 +95,17 @@ async def github_webhook_handler(
     # 7. Dispatch incremental indexing task if repo found
     if repo_id:
         try:
-            from apps.worker.tasks.indexing import start_indexing_pipeline
+            from apps.worker.tasks.indexing import incremental_reindex, start_indexing_pipeline
 
-            start_indexing_pipeline.delay(str(repo_id), payload["repository"]["clone_url"])
+            if changed_files or removed_files:
+                incremental_reindex.delay(
+                    str(repo_id),
+                    list(changed_files),
+                    list(removed_files),
+                    after_sha,
+                )
+            else:
+                start_indexing_pipeline.delay(str(repo_id), payload["repository"]["clone_url"])
         except Exception as exc:
             import structlog
 
