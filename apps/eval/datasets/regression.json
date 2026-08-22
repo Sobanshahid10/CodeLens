@@ -1,0 +1,122 @@
+[
+  {
+    "question": "Where is the HTTP retry logic implemented?",
+    "ground_truth_answer": "HTTP retry logic is implemented using the HTTPAdapter and Retry class from urllib3. The configuration is applied in the Session class and HTTPAdapter send method in requests/adapters.py",
+    "expected_file_paths": ["requests/adapters.py"],
+    "expected_keywords": ["Retry", "HTTPAdapter", "max_retries"]
+  },
+  {
+    "question": "How is session-level cookie persistence handled in requests?",
+    "ground_truth_answer": "Session-level cookie persistence is handled in the Session class inside requests/sessions.py, where cookies are stored in a RequestsCookieJar and merged with per-request cookies using extract_cookies_to_jar.",
+    "expected_file_paths": ["requests/sessions.py", "requests/cookies.py"],
+    "expected_keywords": ["Session", "cookies", "RequestsCookieJar", "extract_cookies_to_jar"]
+  },
+  {
+    "question": "Where are HTTP Basic and Digest Authentication schemes implemented?",
+    "ground_truth_answer": "Authentication classes including HTTPBasicAuth, HTTPProxyAuth, and HTTPDigestAuth are defined subclassing AuthBase in requests/auth.py.",
+    "expected_file_paths": ["requests/auth.py"],
+    "expected_keywords": ["HTTPBasicAuth", "HTTPDigestAuth", "AuthBase", "handle_401"]
+  },
+  {
+    "question": "Where is PreparedRequest created and prepared for network transmission?",
+    "ground_truth_answer": "PreparedRequest is defined in requests/models.py with methods like prepare(), prepare_headers(), prepare_body(), and prepare_auth() to serialize data before sending.",
+    "expected_file_paths": ["requests/models.py"],
+    "expected_keywords": ["PreparedRequest", "prepare", "prepare_body", "prepare_headers"]
+  },
+  {
+    "question": "How does the Response object check for HTTP error statuses?",
+    "ground_truth_answer": "The Response object implements raise_for_status() in requests/models.py, which raises an HTTPError exception when status_code is 4xx or 5xx.",
+    "expected_file_paths": ["requests/models.py", "requests/exceptions.py"],
+    "expected_keywords": ["Response", "raise_for_status", "HTTPError", "status_code"]
+  },
+  {
+    "question": "Where is SSL/TLS certificate verification configured in the transport adapter?",
+    "ground_truth_answer": "SSL certificate verification and custom CA cert loading are configured in requests/adapters.py inside cert_verify() and init_poolmanager() methods of HTTPAdapter.",
+    "expected_file_paths": ["requests/adapters.py"],
+    "expected_keywords": ["cert_verify", "init_poolmanager", "verify", "ssl_context"]
+  },
+  {
+    "question": "How do you mount custom transport adapters to specific URL prefixes?",
+    "ground_truth_answer": "Transport adapters are registered in requests/sessions.py using Session.mount(prefix, adapter), which stores them in an OrderedDict keyed by prefix.",
+    "expected_file_paths": ["requests/sessions.py", "requests/adapters.py"],
+    "expected_keywords": ["mount", "HTTPAdapter", "adapters", "OrderedDict"]
+  },
+  {
+    "question": "Where is chunked streaming of response data implemented?",
+    "ground_truth_answer": "Chunked streaming of binary and text content is implemented via Response.iter_content() and Response.iter_lines() in requests/models.py.",
+    "expected_file_paths": ["requests/models.py"],
+    "expected_keywords": ["iter_content", "iter_lines", "stream", "chunk_size"]
+  },
+  {
+    "question": "How are request timeouts parsed and passed to the connection pool?",
+    "ground_truth_answer": "Timeouts are parsed into connect and read timeouts and passed to urllib3 connection pools in requests/adapters.py inside HTTPAdapter.send() and TimeoutSauce.",
+    "expected_file_paths": ["requests/adapters.py"],
+    "expected_keywords": ["TimeoutSauce", "timeout", "connect", "read"]
+  },
+  {
+    "question": "Where is proxy routing and proxy environment detection configured?",
+    "ground_truth_answer": "Proxy resolution and proxy connection manager routing are handled in requests/adapters.py (proxy_manager_for) and requests/utils.py (get_environ_proxies).",
+    "expected_file_paths": ["requests/adapters.py", "requests/utils.py"],
+    "expected_keywords": ["proxy_manager_for", "get_environ_proxies", "ProxyManager", "proxies"]
+  },
+  {
+    "question": "Where is CaseInsensitiveDict defined and how does it normalize keys?",
+    "ground_truth_answer": "CaseInsensitiveDict is implemented in requests/structures.py, storing lowercase keys internally to allow case-insensitive HTTP header lookups.",
+    "expected_file_paths": ["requests/structures.py"],
+    "expected_keywords": ["CaseInsensitiveDict", "lower", "MutableMapping", "_store"]
+  },
+  {
+    "question": "Where is the root exception hierarchy for requests defined?",
+    "ground_truth_answer": "The exception hierarchy is defined in requests/exceptions.py, rooted at RequestException, with child exceptions like HTTPError, ConnectionError, Timeout, and TooManyRedirects.",
+    "expected_file_paths": ["requests/exceptions.py"],
+    "expected_keywords": ["RequestException", "HTTPError", "ConnectionError", "Timeout"]
+  },
+  {
+    "question": "How are event hooks registered and dispatched?",
+    "ground_truth_answer": "Event hooks are managed in requests/hooks.py through dispatch_hook() and default_hooks(), allowing callbacks like response hooks to run after execution.",
+    "expected_file_paths": ["requests/hooks.py"],
+    "expected_keywords": ["dispatch_hook", "default_hooks", "HOOKS"]
+  },
+  {
+    "question": "Where is status code enumeration and lookup defined?",
+    "ground_truth_answer": "HTTP status codes and alias lookups (like codes.ok or codes.not_found) are defined in requests/status_codes.py using the LookupDict class.",
+    "expected_file_paths": ["requests/status_codes.py", "requests/structures.py"],
+    "expected_keywords": ["codes", "LookupDict", "status_codes"]
+  },
+  {
+    "question": "Where is header link parsing implemented?",
+    "ground_truth_answer": "Parsing of Link headers according to RFC 5988 is implemented in parse_header_links() in requests/utils.py.",
+    "expected_file_paths": ["requests/utils.py"],
+    "expected_keywords": ["parse_header_links", "links", "url", "rel"]
+  },
+  {
+    "question": "How does requests determine character encoding from response headers?",
+    "ground_truth_answer": "Response character encoding is determined by get_encoding_from_headers() and guess_json_utf() in requests/utils.py.",
+    "expected_file_paths": ["requests/utils.py"],
+    "expected_keywords": ["get_encoding_from_headers", "content-type", "charset", "guess_json_utf"]
+  },
+  {
+    "question": "Where are the top-level API convenience functions get, post, put, delete defined?",
+    "ground_truth_answer": "Top-level HTTP verb functions (get, post, put, delete, head, patch) are defined in requests/api.py, delegating each request to a temporary Session context.",
+    "expected_file_paths": ["requests/api.py"],
+    "expected_keywords": ["get", "post", "request", "session"]
+  },
+  {
+    "question": "How are URL query parameters serialized and encoded?",
+    "ground_truth_answer": "Query parameters are encoded in requests/models.py inside PreparedRequest.prepare_url() and requests/utils.py via urlencode utilities.",
+    "expected_file_paths": ["requests/models.py", "requests/utils.py"],
+    "expected_keywords": ["prepare_url", "params", "urlencode", "quote"]
+  },
+  {
+    "question": "Where is multipart form-data payload encoding constructed?",
+    "ground_truth_answer": "Multipart form-data body serialization for file uploads is handled in PreparedRequest.prepare_body() in requests/models.py using urllib3's encode_multipart_formdata.",
+    "expected_file_paths": ["requests/models.py"],
+    "expected_keywords": ["prepare_body", "encode_multipart_formdata", "files", "content_type"]
+  },
+  {
+    "question": "Where is redirect handling and maximum redirect limit enforced?",
+    "ground_truth_answer": "Redirect handling, history tracking, and the max_redirects limit enforcement are implemented in SessionRedirectMixin.resolve_redirects() in requests/sessions.py.",
+    "expected_file_paths": ["requests/sessions.py"],
+    "expected_keywords": ["resolve_redirects", "max_redirects", "TooManyRedirects", "history"]
+  }
+]

@@ -9,6 +9,8 @@ select = ["E", "F", "I", "N", "UP", "ANN", "ASYNC", "S", "TCH"]
 "tests/*" = ["S101", "S105", "S106", "ANN", "TC001", "TC002", "TC003"]
 "apps/api/tests/*" = ["S101", "S105", "S106", "ANN", "TC001", "TC002", "TC003"]
 "apps/worker/tests/*" = ["S101", "S105", "S106", "ANN", "TC001", "TC002", "TC003"]
+"apps/eval/tests/*" = ["S101", "S105", "S106", "ANN", "TC001", "TC002", "TC003"]
+"apps/eval/*" = ["ANN", "S108", "TC001", "TC002", "TC003"]
 "apps/api/alembic/*" = ["ANN", "E501"]
 "apps/api/app/*" = ["TC001", "TC002", "TC003", "S105", "S106", "S108"]
 "packages/*" = ["TC001", "TC002", "TC003"]
@@ -23,5 +25,5 @@ mypy_path = "."
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-pythonpath = [".", "apps/api", "apps/worker", "packages/ast-parser/src", "packages/llm-gateway/src", "packages/core/src"]
-testpaths = ["apps/api/tests", "apps/worker/tests"]
+pythonpath = [".", "apps/api", "apps/worker", "apps/eval", "packages/ast-parser/src", "packages/llm-gateway/src", "packages/core/src"]
+testpaths = ["apps/api/tests", "apps/worker/tests", "apps/eval/tests"]

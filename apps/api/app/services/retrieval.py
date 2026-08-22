@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import os
 import re
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -16,6 +17,7 @@ from qdrant_client.models import (
     SparseVector,
 )
 
+from apps.api.app.middleware.metrics import RETRIEVAL_LATENCY
 from packages.llm_gateway.src.providers.base import BaseLLMProvider
 from packages.llm_gateway.src.router import get_provider
 
@@ -72,29 +74,33 @@ class HybridSearchEngine:
         language_filter: str | None = None,
     ) -> list[SearchHit]:
         """Perform hybrid search over indexed repository chunks."""
-        # 1. Embed query for dense search
-        embed_result = await self._provider.embed([query])
-        dense_vector = embed_result.vectors[0]
+        start_time = time.perf_counter()
+        try:
+            # 1. Embed query for dense search
+            embed_result = await self._provider.embed([query])
+            dense_vector = embed_result.vectors[0]
 
-        # 2. Build sparse query vector
-        sparse_vector = self._build_sparse_vector(query)
+            # 2. Build sparse query vector
+            sparse_vector = self._build_sparse_vector(query)
 
-        # 3. Build filter for repository and optional language
-        conditions = [FieldCondition(key="repo_id", match=MatchValue(value=repo_id))]
-        if language_filter:
-            conditions.append(
-                FieldCondition(key="language", match=MatchValue(value=language_filter))
+            # 3. Build filter for repository and optional language
+            conditions = [FieldCondition(key="repo_id", match=MatchValue(value=repo_id))]
+            if language_filter:
+                conditions.append(
+                    FieldCondition(key="language", match=MatchValue(value=language_filter))
+                )
+            filter_ = Filter(must=conditions)
+
+            # 4. Search dense and sparse in parallel
+            dense_results, sparse_results = await asyncio.gather(
+                self._dense_search(dense_vector, filter_),
+                self._sparse_search(sparse_vector, filter_),
             )
-        filter_ = Filter(must=conditions)
 
-        # 4. Search dense and sparse in parallel
-        dense_results, sparse_results = await asyncio.gather(
-            self._dense_search(dense_vector, filter_),
-            self._sparse_search(sparse_vector, filter_),
-        )
-
-        # 5. Fuse results using Reciprocal Rank Fusion
-        return self._reciprocal_rank_fusion(dense_results, sparse_results, top_k=top_k)
+            # 5. Fuse results using Reciprocal Rank Fusion
+            return self._reciprocal_rank_fusion(dense_results, sparse_results, top_k=top_k)
+        finally:
+            RETRIEVAL_LATENCY.observe(time.perf_counter() - start_time)
 
     def _build_sparse_vector(self, query: str) -> dict[str, Any]:
         """Tokenize query string and compute term frequencies mapped into sparse vector indices."""

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.api.app.db.models import ChatMessage, ChatSession, Repository, RepositoryMember, User
 from apps.api.app.db.session import AsyncSessionLocal, get_db
 from apps.api.app.middleware.auth import get_current_user
+from apps.api.app.middleware.metrics import LLM_REQUEST_LATENCY, LLM_TOKENS_TOTAL
 from apps.api.app.services.retrieval import HybridSearchEngine
 from packages.llm_gateway.src.router import get_provider
 
@@ -146,6 +147,7 @@ async def chat_stream_endpoint(
 
         # Step 4: Stream tokens
         accumulated_text = []
+        llm_start_time = time.perf_counter()
         try:
             async for chunk in provider.chat_stream(
                 messages=messages,
@@ -158,16 +160,30 @@ async def chat_stream_endpoint(
             err_msg = f" Error streaming completion: {exc}"
             accumulated_text.append(err_msg)
             yield _sse_event("token", {"text": err_msg})
+        finally:
+            llm_duration = time.perf_counter() - llm_start_time
+            provider_name = provider.__class__.__name__.replace("Provider", "").lower()
+            model_name = getattr(provider, "chat_model_name", "unknown")
+            LLM_REQUEST_LATENCY.labels(
+                provider=provider_name, model=model_name
+            ).observe(llm_duration)
+            prompt_tokens = sum(len(m.get("content", "").split()) for m in messages)
+            completion_tokens = sum(len(t.split()) for t in accumulated_text)
+            LLM_TOKENS_TOTAL.labels(
+                provider=provider_name, model=model_name, token_type="prompt"
+            ).inc(prompt_tokens)
+            LLM_TOKENS_TOTAL.labels(
+                provider=provider_name, model=model_name, token_type="completion"
+            ).inc(completion_tokens)
 
         # Step 5: Emit done event
         latency_ms = int((time.perf_counter() - start_time) * 1000)
-        provider_name = provider.__class__.__name__
         yield _sse_event(
             "done",
             {
                 "latency_ms": latency_ms,
                 "chunks_retrieved": len(hits),
-                "provider": provider_name,
+                "provider": provider.__class__.__name__,
             },
         )
 

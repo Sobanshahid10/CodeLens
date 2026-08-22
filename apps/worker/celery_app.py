@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import os
 
-from celery import Celery  # type: ignore[import-untyped]
+from celery import Celery
+from celery.signals import worker_ready, worker_shutdown
+
+from apps.api.app.middleware.metrics import ACTIVE_WORKERS
 
 broker_url = os.environ.get(
     "CELERY_BROKER_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/0")
@@ -30,6 +33,28 @@ celery_app.conf.task_serializer = "json"
 celery_app.conf.result_serializer = "json"
 celery_app.conf.accept_content = ["json"]
 celery_app.conf.result_expires = 3600
+
+
+@worker_ready.connect  # type: ignore[untyped-decorator]
+def on_worker_ready(**kwargs: object) -> None:
+    """Increment active worker metric and start Prometheus metrics exporter if configured."""
+    ACTIVE_WORKERS.inc()
+    try:
+        from prometheus_client import start_http_server
+
+        start_http_server(9090)
+    except Exception as exc:
+        import structlog
+
+        structlog.get_logger("codelens.worker").debug(
+            "metrics_server_start_skipped", error=str(exc)
+        )
+
+
+@worker_shutdown.connect  # type: ignore[untyped-decorator]
+def on_worker_shutdown(**kwargs: object) -> None:
+    """Decrement active worker metric on worker shutdown."""
+    ACTIVE_WORKERS.dec()
 
 
 @celery_app.task(name="health_check")  # type: ignore[untyped-decorator]

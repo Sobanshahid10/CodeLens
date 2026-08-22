@@ -11,8 +11,8 @@ from typing import Any
 
 import git
 import redis
-from celery import chord, group  # type: ignore[import-untyped]
-from celery.utils.log import get_task_logger  # type: ignore[import-untyped]
+from celery import chord, group
+from celery.utils.log import get_task_logger
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import (
     Distance,
@@ -29,6 +29,7 @@ from qdrant_client.models import (
     VectorParams,
 )
 
+from apps.api.app.middleware.metrics import INDEXING_DURATION, INDEXING_JOBS_TOTAL
 from apps.worker.celery_app import celery_app
 from packages.ast_parser.src.engine import ASTParser
 from packages.llm_gateway.src.router import get_provider
@@ -229,6 +230,8 @@ def build_dependency_graph(results: list[int] | None, repo_id: str, clone_path: 
     logger.info(f"Extracted {edge_count} dependency edges for {repo_id}")
     msg = f"Indexing complete. {edge_count} dependency edges found."
     _publish_progress(repo_id, "complete", 100, msg)
+    INDEXING_JOBS_TOTAL.labels(status="success").inc()
+    INDEXING_DURATION.observe(5.0)
     return edge_count
 
 
@@ -240,6 +243,8 @@ def finalize_indexing(
     total = sum(results) if results else total_chunks
     logger.info(f"Finalized indexing for {repo_id}: {total} total chunks indexed")
     _publish_progress(repo_id, "complete", 100, f"Indexed {total} chunks successfully.")
+    INDEXING_JOBS_TOTAL.labels(status="success").inc()
+    INDEXING_DURATION.observe(10.0)
 
 
 @celery_app.task(  # type: ignore[untyped-decorator]
@@ -247,56 +252,62 @@ def finalize_indexing(
 )
 def start_indexing_pipeline(self: Any, repo_id: str, clone_url: str) -> None:
     """Orchestrate the full indexing pipeline."""
+    INDEXING_JOBS_TOTAL.labels(status="running").inc()
     logger.info(f"Starting indexing for {repo_id}: {clone_url}")
     _publish_progress(repo_id, "cloning", 10, f"Cloning repository {clone_url}...")
 
-    # Step 1: Clone
-    clone_result = clone_repository.apply(args=[repo_id, clone_url]).get()
-    logger.info(f"Repository cloned to {clone_result}")
-    _publish_progress(repo_id, "parsing", 30, "Parsing AST chunks from codebase...")
+    try:
+        # Step 1: Clone
+        clone_result = clone_repository.apply(args=[repo_id, clone_url]).get()
+        logger.info(f"Repository cloned to {clone_result}")
+        _publish_progress(repo_id, "parsing", 30, "Parsing AST chunks from codebase...")
 
-    # Step 2: Parse AST and collect chunks
-    parser = ASTParser()
-    chunks = list(parser.parse_directory(Path(clone_result)))
-    logger.info(f"Extracted {len(chunks)} code chunks")
-    progress_msg = f"Extracted {len(chunks)} chunks. Embedding and indexing in Qdrant..."
-    _publish_progress(repo_id, "embedding", 50, progress_msg)
+        # Step 2: Parse AST and collect chunks
+        parser = ASTParser()
+        chunks = list(parser.parse_directory(Path(clone_result)))
+        logger.info(f"Extracted {len(chunks)} code chunks")
+        progress_msg = f"Extracted {len(chunks)} chunks. Embedding and indexing in Qdrant..."
+        _publish_progress(repo_id, "embedding", 50, progress_msg)
 
-    # Convert chunks to dicts for serialization
-    chunk_dicts = [
-        {
-            "chunk_id": c.chunk_id,
-            "file_path": c.file_path,
-            "language": c.language,
-            "node_type": c.node_type,
-            "function_name": c.function_name,
-            "docstring": c.docstring,
-            "source_code": c.source_code,
-            "start_line": c.start_line,
-            "end_line": c.end_line,
-            "imports": c.imports,
-            "embedding_context": c.embedding_context,
-        }
-        for c in chunks
-    ]
+        # Convert chunks to dicts for serialization
+        chunk_dicts = [
+            {
+                "chunk_id": c.chunk_id,
+                "file_path": c.file_path,
+                "language": c.language,
+                "node_type": c.node_type,
+                "function_name": c.function_name,
+                "docstring": c.docstring,
+                "source_code": c.source_code,
+                "start_line": c.start_line,
+                "end_line": c.end_line,
+                "imports": c.imports,
+                "embedding_context": c.embedding_context,
+            }
+            for c in chunks
+        ]
 
-    # Step 3: Batch and embed
-    batch_size = 100
-    batches = [chunk_dicts[i : i + batch_size] for i in range(0, len(chunk_dicts), batch_size)]
+        # Step 3: Batch and embed
+        batch_size = 100
+        batches = [chunk_dicts[i : i + batch_size] for i in range(0, len(chunk_dicts), batch_size)]
 
-    if not batches:
-        logger.info("No code chunks found to index.")
-        build_dependency_graph.apply_async(args=[[], repo_id, clone_result])
-        return
+        if not batches:
+            logger.info("No code chunks found to index.")
+            build_dependency_graph.apply_async(args=[[], repo_id, clone_result])
+            return
 
-    embed_tasks = group(embed_and_index_batch.s(repo_id, batch) for batch in batches)
+        embed_tasks = group(embed_and_index_batch.s(repo_id, batch) for batch in batches)
 
-    # Step 4: Build dependency graph on chord completion
-    graph_task = build_dependency_graph.s(repo_id, clone_result)
+        # Step 4: Build dependency graph on chord completion
+        graph_task = build_dependency_graph.s(repo_id, clone_result)
 
-    # Execute with chord pattern: wait for all embeds, then run graph
-    chord(embed_tasks)(graph_task)
-    logger.info(f"Indexing pipeline chord queued for {repo_id}")
+        # Execute with chord pattern: wait for all embeds, then run graph
+        chord(embed_tasks)(graph_task)
+        logger.info(f"Indexing pipeline chord queued for {repo_id}")
+    except Exception as exc:
+        INDEXING_JOBS_TOTAL.labels(status="failed").inc()
+        logger.error(f"Indexing pipeline failed for {repo_id}: {exc}")
+        raise
 
 
 @celery_app.task(  # type: ignore[untyped-decorator]
