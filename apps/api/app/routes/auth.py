@@ -132,3 +132,47 @@ async def github_callback(
             "plan": user.plan,
         },
     }
+
+
+@router.post("/demo", summary="Demo user login for local evaluation")
+@router.get("/demo", summary="Demo user login for local evaluation")
+async def demo_login(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Create or get a demo user, and issue a valid JWT token for testing."""
+    stmt = select(User).where(User.github_login.in_(["demo-developer", "Muhammad Soban"]))
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        user = User(
+            github_id=99999999,
+            github_login="Muhammad Soban",
+            email="sobanshahid25@gmail.com",
+            avatar_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+            plan="pro",
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    else:
+        user.github_login = "Muhammad Soban"
+        user.email = "sobanshahid25@gmail.com"
+        await db.commit()
+        await db.refresh(user)
+
+    token = create_access_token(str(user.id))
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": str(user.id),
+            "github_id": user.github_id,
+            "github_login": user.github_login,
+            "email": user.email,
+            "avatar_url": user.avatar_url,
+            "plan": user.plan,
+        },
+    }
+

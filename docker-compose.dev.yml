@@ -1,21 +1,27 @@
 services:
   api:
     volumes:
-      - ./apps/api:/app
+      - .:/workspace
       - ./packages:/packages
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    working_dir: /workspace
+    command: uvicorn apps.api.app.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       - ENVIRONMENT=development
+      - PYTHONPATH=/root/.local/lib/python3.12/site-packages:/workspace:/packages/core/src:/packages/ast-parser/src:/packages/llm-gateway/src
 
   worker:
     volumes:
-      - ./apps/worker:/app/apps/worker
-      - ./apps/api:/app/apps/api
+      - .:/workspace
       - ./packages:/packages
-    command: watchfiles "celery -A apps.worker.celery_app worker --loglevel=debug -Q high,default,low --concurrency=2" /app
+    working_dir: /workspace
+    command: watchfiles "celery -A apps.worker.celery_app worker --loglevel=debug -Q high,default,low --concurrency=2" /workspace
+    environment:
+      - PYTHONPATH=/root/.local/lib/python3.12/site-packages:/workspace:/packages/core/src:/packages/ast-parser/src:/packages/llm-gateway/src
 
   beat:
     volumes:
-      - ./apps/worker:/app/apps/worker
-      - ./apps/api:/app/apps/api
+      - .:/workspace
       - ./packages:/packages
+    working_dir: /workspace
+    environment:
+      - PYTHONPATH=/root/.local/lib/python3.12/site-packages:/workspace:/packages/core/src:/packages/ast-parser/src:/packages/llm-gateway/src

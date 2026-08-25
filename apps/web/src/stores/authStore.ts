@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { clearToken, getToken, setToken } from '../lib/auth';
+import { apiClient } from '../lib/api';
 
 export interface UserProfile {
   id: string;
@@ -16,6 +17,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   setAuth: (token: string, user: UserProfile) => void;
+  loginWithDemo: () => Promise<void>;
   logout: () => void;
   initAuthFromUrl: () => boolean;
 }
@@ -34,6 +36,23 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAuthenticated: true,
       isLoading: false,
     });
+  },
+
+  loginWithDemo: async () => {
+    set({ isLoading: true });
+    try {
+      const res = await apiClient.post<{ access_token: string; token_type: string; user: UserProfile }>('/auth/demo');
+      setToken(res.access_token);
+      set({
+        token: res.access_token,
+        user: res.user,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (err) {
+      set({ isLoading: false });
+      throw err;
+    }
   },
 
   logout: () => {

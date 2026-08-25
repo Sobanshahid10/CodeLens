@@ -1,18 +1,22 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Ensure .env is loaded
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
+load_dotenv()
 
 from celery import Celery
 from celery.signals import worker_ready, worker_shutdown
 
 from apps.api.app.middleware.metrics import ACTIVE_WORKERS
 
-broker_url = os.environ.get(
-    "CELERY_BROKER_URL", os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-)
-result_backend = os.environ.get(
-    "CELERY_RESULT_BACKEND", os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-)
+redis_default = "redis://:redis_password_change_me@localhost:6379/0"
+broker_url = os.environ.get("CELERY_BROKER_URL", os.environ.get("REDIS_URL", redis_default))
+result_backend = os.environ.get("CELERY_RESULT_BACKEND", os.environ.get("REDIS_URL", redis_default))
+
 
 celery_app = Celery(
     "codelens_worker",
