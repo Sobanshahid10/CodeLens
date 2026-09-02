@@ -27,6 +27,7 @@ export interface GraphData {
 interface DependencyGraphProps {
   repoId: string;
   onSelectFile?: (filePath: string) => void;
+  onGraphLoaded?: (nodeCount: number, edgeCount: number) => void;
 }
 
 const LANGUAGE_COLORS: Record<string, string> = {
@@ -44,6 +45,7 @@ const LANGUAGE_COLORS: Record<string, string> = {
 export const DependencyGraph: React.FC<DependencyGraphProps> = ({
   repoId,
   onSelectFile,
+  onGraphLoaded,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -107,8 +109,10 @@ export const DependencyGraph: React.FC<DependencyGraphProps> = ({
             { source: 'src/routes/auth.py', target: 'src/models/user.py' },
           ];
           setGraphData({ nodes: sampleNodes, edges: sampleEdges });
+          onGraphLoaded?.(sampleNodes.length, sampleEdges.length);
         } else {
           setGraphData({ nodes, edges });
+          onGraphLoaded?.(nodes.length, edges.length);
         }
         setLoading(false);
       } catch (err: any) {

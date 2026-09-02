@@ -152,16 +152,15 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-[-0.03em] text-white max-w-4xl leading-[1.08] mb-6">
-          AI Codebase Intelligence <br className="hidden sm:inline" />
-          <span className="bg-gradient-to-b from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-            For Every Repository
-          </span>
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-[-0.03em] max-w-4xl leading-[1.05] mb-6 hero-headline" style={{ fontFamily: 'Outfit, Inter, sans-serif' }}>
+          AI Codebase Intelligence{' '}
+          <br className="hidden sm:inline" />
+          For Every Repository
         </h1>
 
         {/* Subtitle */}
-        <p className="text-base sm:text-lg text-slate-400 max-w-2xl mb-8 leading-relaxed font-normal">
-          Paste any public or private GitHub repository URL to index AST chunks, query with Google Gemini 3.6 Flash, inspect interactive line citations, and view force-directed module graphs.
+        <p className="text-base sm:text-lg text-slate-400 max-w-2xl mb-8 leading-relaxed">
+          Paste any public or private GitHub repository URL to index AST chunks, query with Gemini 3.6 Flash, inspect interactive line citations, and view force-directed module graphs.
         </p>
 
         {/* Quick URL Input Bar: Index ANY Repo in the World */}

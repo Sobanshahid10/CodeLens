@@ -3,10 +3,22 @@ import Editor, { OnMount } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { useRepoStore } from '../stores/repoStore';
 import { Check, Copy, FileCode, Maximize2, Minimize2, X } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 
+/* ──────────────────────────────────────────────
+   Tab management types
+────────────────────────────────────────────── */
+interface FileTab {
+  path: string;
+  label: string;
+}
+
+/* ──────────────────────────────────────────────
+   Demo source previews
+────────────────────────────────────────────── */
 const REAL_SOURCE_PREVIEWS: Record<string, string> = {
   'apps/api/app/main.py': `from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMIRegistration
+from fastapi.middleware.cors import CORSMiddleware
 from apps.api.app.routes import auth, repos, chat, search
 from apps.api.app.config import settings
 
@@ -14,6 +26,15 @@ app = FastAPI(
     title="CodeLens API",
     description="AI-native codebase intelligence, AST parsing, and hybrid RAG",
     version="2.0.0",
+)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Routes
@@ -48,11 +69,11 @@ async def search_code(
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
-    DATABASE_URL: str = "postgresql://codelens:codelens_password_change_me@localhost:5432/codelens"
-    REDIS_URL: str = "redis://:redis_password_change_me@localhost:6379/0"
+    DATABASE_URL: str = "postgresql://codelens:password@localhost:5432/codelens"
+    REDIS_URL: str = "redis://:password@localhost:6379/0"
     QDRANT_URL: str = "http://localhost:6333"
-    QDRANT_API_KEY: str | None = "qdrant_api_key_change_me_12345"
-    JWT_SECRET: str = "super_secret_jwt_key_at_least_32_characters_long_12345"
+    QDRANT_API_KEY: str | None = None
+    JWT_SECRET: str = "super_secret_jwt_key_at_least_32_characters_long"
     LLM_PROVIDER: str = "gemini"
     GOOGLE_API_KEY: str | None = None
 
@@ -87,83 +108,108 @@ class GeminiProvider(BaseLLMProvider):
 `,
 };
 
+/* ──────────────────────────────────────────────
+   Language detection
+────────────────────────────────────────────── */
+const getLanguage = (filePath: string | null): string => {
+  if (!filePath) return 'python';
+  const ext = filePath.split('.').pop()?.toLowerCase();
+  const map: Record<string, string> = {
+    py: 'python', ts: 'typescript', tsx: 'typescript',
+    js: 'javascript', jsx: 'javascript', go: 'go', rs: 'rust',
+    json: 'json', md: 'markdown', yaml: 'yaml', yml: 'yaml',
+    sql: 'sql', toml: 'ini', sh: 'shell', dockerfile: 'dockerfile',
+  };
+  return map[ext ?? ''] ?? 'plaintext';
+};
+
+/* ──────────────────────────────────────────────
+   Main component
+────────────────────────────────────────────── */
 export const CodeViewer: React.FC = () => {
-  const selectedFile = useRepoStore((state) => state.selectedFile);
-  const selectedFileContent = useRepoStore((state) => state.selectedFileContent);
-  const selectedCitation = useRepoStore((state) => state.selectedCitation);
-  const clearCitationHighlight = useRepoStore((state) => state.clearCitationHighlight);
+  const selectedFile = useRepoStore((s) => s.selectedFile);
+  const selectedFileContent = useRepoStore((s) => s.selectedFileContent);
+  const selectedCitation = useRepoStore((s) => s.selectedCitation);
+  const clearCitationHighlight = useRepoStore((s) => s.clearCitationHighlight);
+  const selectFile = useRepoStore((s) => s.selectFile);
+
+  const toast = useToast();
 
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<any>(null);
   const decorationsRef = useRef<string[]>([]);
+
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const getLanguage = (filePath: string | null): string => {
-    if (!filePath) return 'python';
-    const ext = filePath.split('.').pop()?.toLowerCase();
-    switch (ext) {
-      case 'py':
-        return 'python';
-      case 'ts':
-      case 'tsx':
-        return 'typescript';
-      case 'js':
-      case 'jsx':
-        return 'javascript';
-      case 'go':
-        return 'go';
-      case 'rs':
-        return 'rust';
-      case 'json':
-        return 'json';
-      case 'md':
-        return 'markdown';
-      case 'yaml':
-      case 'yml':
-        return 'yaml';
-      case 'sql':
-        return 'sql';
-      default:
-        return 'plaintext';
-    }
+  // Tab management
+  const [tabs, setTabs] = useState<FileTab[]>([]);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+
+  // When a new file is selected, add/activate its tab
+  useEffect(() => {
+    if (!selectedFile) return;
+    const label = selectedFile.split('/').pop() || selectedFile;
+    setTabs((prev) => {
+      if (prev.find((t) => t.path === selectedFile)) return prev;
+      return [...prev, { path: selectedFile, label }];
+    });
+    setActiveTab(selectedFile);
+  }, [selectedFile]);
+
+  const closeTab = (path: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setTabs((prev) => {
+      const next = prev.filter((t) => t.path !== path);
+      if (activeTab === path) {
+        const idx = prev.findIndex((t) => t.path === path);
+        const fallback = next[idx] ?? next[idx - 1] ?? null;
+        if (fallback) {
+          selectFile(fallback.path);
+          setActiveTab(fallback.path);
+        } else {
+          setActiveTab(null);
+        }
+      }
+      return next;
+    });
   };
 
+  const switchTab = (path: string) => {
+    selectFile(path);
+    setActiveTab(path);
+  };
+
+  /* Code content resolution */
   const getCodeContent = (): string => {
+    const file = activeTab ?? selectedFile;
     if (selectedFileContent) return selectedFileContent;
-    if (selectedFile && REAL_SOURCE_PREVIEWS[selectedFile]) {
-      return REAL_SOURCE_PREVIEWS[selectedFile];
-    }
+    if (file && REAL_SOURCE_PREVIEWS[file]) return REAL_SOURCE_PREVIEWS[file];
     if (selectedCitation?.snippet) {
       return (
-        `# File: ${selectedFile || 'retrieved_context.py'}\n` +
+        `# File: ${file || 'retrieved_context.py'}\n` +
         `# Citation Range: Lines ${selectedCitation.startLine}-${selectedCitation.endLine}\n\n` +
         selectedCitation.snippet
       );
     }
-    if (!selectedFile) {
+    if (!file) {
       return (
-        `"""\n` +
-        `CodeLens AI Workspace — Production Code Viewer\n\n` +
-        `• Select any file from the Explorer on the left to review its source code.\n` +
+        `"""\nCodeLens AI Workspace — Production Code Viewer\n\n` +
+        `• Select any file from the Explorer on the left.\n` +
         `• Ask questions in the AI Assistant on the right.\n` +
-        `• Click any citation card to automatically jump to and highlight relevant lines.\n` +
-        `"""\n\n` +
-        `def welcome_to_codelens():\n` +
-        `    return "AST Tree-Sitter + Hybrid Qdrant Vector Search + Gemini 3.6 Flash"\n`
+        `• Click any citation card to jump to highlighted lines.\n` +
+        `• Press ⌘K to search and jump to any file.\n"""\n\n` +
+        `def welcome_to_codelens():\n    return "AST + Hybrid Qdrant + Gemini 3.6 Flash"\n`
       );
     }
     return (
-      `# File: ${selectedFile}\n\n` +
-      `"""\n` +
-      `File loaded from local repository.\n` +
-      `Tree-Sitter parsed AST slices indexed in Qdrant vector database.\n` +
-      `"""\n\n` +
-      `def main() -> None:\n` +
-      `    print("Inspecting ${selectedFile} in CodeLens Monaco Editor")\n`
+      `# File: ${file}\n\n` +
+      `"""\nFile loaded from repository.\nTree-Sitter AST slices indexed in Qdrant.\n"""\n\n` +
+      `def main() -> None:\n    print("Inspecting ${file} in CodeLens Monaco Editor")\n`
     );
   };
 
+  /* Monaco editor mount */
   const handleEditorDidMount: OnMount = (editorInstance, monaco) => {
     editorRef.current = editorInstance;
     monacoRef.current = monaco;
@@ -172,27 +218,34 @@ export const CodeViewer: React.FC = () => {
       base: 'vs-dark',
       inherit: true,
       rules: [
-        { token: 'comment', foreground: '64748b', fontStyle: 'italic' },
+        { token: 'comment', foreground: '4b6274', fontStyle: 'italic' },
         { token: 'keyword', foreground: '818cf8', fontStyle: 'bold' },
         { token: 'string', foreground: '34d399' },
-        { token: 'number', foreground: 'f59e0b' },
+        { token: 'number', foreground: 'fb923c' },
         { token: 'function', foreground: '38bdf8' },
+        { token: 'type', foreground: 'c084fc' },
+        { token: 'variable', foreground: 'e2e8f0' },
+        { token: 'constant', foreground: 'fbbf24' },
       ],
       colors: {
         'editor.background': '#07090e',
         'editor.foreground': '#f1f5f9',
-        'editor.lineHighlightBackground': '#0f1422',
+        'editor.lineHighlightBackground': '#0d1220',
         'editorGutter.background': '#07090e',
         'editorCursor.foreground': '#818cf8',
-        'editorLineNumber.foreground': '#334155',
+        'editorLineNumber.foreground': '#2e3f55',
         'editorLineNumber.activeForeground': '#818cf8',
+        'editorIndentGuide.background': '#1a2434',
+        'editorIndentGuide.activeBackground': '#2a3a54',
+        'editor.selectionBackground': '#3730a350',
+        'editorBracketMatch.background': '#818cf820',
+        'editorBracketMatch.border': '#818cf860',
       },
     });
-
     monaco.editor.setTheme('codelens-dark');
   };
 
-  // Scroll to and highlight citation line range
+  /* Citation highlight effect */
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current || !selectedCitation) {
       if (editorRef.current && decorationsRef.current.length > 0) {
@@ -200,14 +253,11 @@ export const CodeViewer: React.FC = () => {
       }
       return;
     }
-
     const { startLine, endLine } = selectedCitation;
     const monaco = monacoRef.current;
-    const editor = editorRef.current;
-
-    editor.revealLinesInCenter(startLine, endLine, monaco.editor.ScrollType.Smooth);
-
-    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, [
+    const ed = editorRef.current;
+    ed.revealLinesInCenter(startLine, endLine, monaco.editor.ScrollType.Smooth);
+    decorationsRef.current = ed.deltaDecorations(decorationsRef.current, [
       {
         range: new monaco.Range(startLine, 1, endLine, 1),
         options: {
@@ -220,74 +270,94 @@ export const CodeViewer: React.FC = () => {
     ]);
   }, [selectedCitation]);
 
+  /* Copy code */
   const handleCopyCode = () => {
-    const code = getCodeContent();
-    navigator.clipboard.writeText(code);
+    navigator.clipboard.writeText(getCodeContent());
     setCopied(true);
+    toast.success('Copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const currentFileName = selectedFile ? selectedFile.split('/').pop() : 'welcome.py';
+  /* Fullscreen toggle */
+  const toggleFullscreen = () => {
+    setIsFullscreen((v) => !v);
+    setTimeout(() => editorRef.current?.layout(), 50);
+  };
+
+  const currentFile = activeTab ?? selectedFile;
+  const lang = getLanguage(currentFile);
 
   return (
     <main
       className={`h-full flex flex-col bg-[#07090e] overflow-hidden ${
         isFullscreen ? 'fixed inset-0 z-50' : ''
       }`}
-      aria-label="Code Editor Viewer"
+      aria-label="Monaco Code Editor"
     >
-      {/* Tab Bar */}
-      <div className="h-10 px-3 bg-[#0c101a] border-b border-white/5 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-t-lg bg-[#07090e] border-t-2 border-indigo-500 text-xs font-mono text-slate-100 shadow-inner">
-            <FileCode size={13} className="text-indigo-400" />
-            <span className="font-semibold">{currentFileName}</span>
-            <span className="text-[10px] text-slate-500 font-sans">
-              ({getLanguage(selectedFile)})
-            </span>
+      {/* Tab bar */}
+      <div className="flex items-stretch bg-[#0c101a] border-b border-white/[0.06] overflow-x-auto shrink-0" style={{ height: '36px' }}>
+        {tabs.length === 0 ? (
+          <div className="flex items-center gap-2 px-3 h-full editor-tab active">
+            <FileCode size={12} className="text-indigo-400" />
+            <span>welcome.py</span>
+            <span className="text-[10px] text-slate-500 font-sans ml-1">(python)</span>
           </div>
-        </div>
-
-        {/* Action icons */}
-        <div className="flex items-center gap-2">
-          {selectedCitation && (
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-[11px] text-emerald-300 animate-fade-in">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Citation: Lines {selectedCitation.startLine}–{selectedCitation.endLine}</span>
+        ) : (
+          tabs.map((tab) => (
+            <div
+              key={tab.path}
+              onClick={() => switchTab(tab.path)}
+              className={`editor-tab ${activeTab === tab.path ? 'active' : ''}`}
+            >
+              <FileCode size={11} className={activeTab === tab.path ? 'text-indigo-400' : 'text-slate-500'} />
+              <span>{tab.label}</span>
               <button
-                onClick={clearCitationHighlight}
-                className="ml-1 text-slate-400 hover:text-white"
-                title="Clear Highlight"
+                className="close-btn ml-1 text-slate-500 hover:text-rose-400 rounded p-0.5 transition-colors"
+                onClick={(e) => closeTab(tab.path, e)}
+                title={`Close ${tab.label}`}
               >
-                <X size={12} />
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
+                  <path d="M1 1l6 6M7 1l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+          ))
+        )}
+
+        {/* Right actions */}
+        <div className="flex items-center gap-1.5 ml-auto px-2 shrink-0">
+          {selectedCitation && (
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-[10px] text-emerald-300 animate-slide-right">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>L{selectedCitation.startLine}–{selectedCitation.endLine}</span>
+              <button onClick={clearCitationHighlight} className="ml-1 text-slate-500 hover:text-white" title="Clear">
+                <X size={11} />
               </button>
             </div>
           )}
-
           <button
             onClick={handleCopyCode}
             title="Copy Code"
-            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[11px] font-mono transition-colors"
+            className="flex items-center gap-1 px-2 py-1 rounded bg-white/[0.05] hover:bg-white/[0.10] text-slate-400 hover:text-white text-[10px] font-mono transition-colors"
           >
-            {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-            <span>{copied ? 'Copied' : 'Copy'}</span>
+            {copied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+            <span>{copied ? 'Copied!' : 'Copy'}</span>
           </button>
-
           <button
-            onClick={() => setIsFullscreen(!isFullscreen)}
+            onClick={toggleFullscreen}
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+            className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
           >
-            {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
           </button>
         </div>
       </div>
 
-      {/* Monaco Code Editor */}
-      <div className="flex-1 w-full h-full relative">
+      {/* Monaco Editor */}
+      <div className="flex-1 w-full relative overflow-hidden">
         <Editor
           height="100%"
-          language={getLanguage(selectedFile)}
+          language={lang}
           value={getCodeContent()}
           theme="codelens-dark"
           onMount={handleEditorDidMount}
@@ -295,29 +365,43 @@ export const CodeViewer: React.FC = () => {
             readOnly: true,
             fontSize: 12.5,
             fontFamily: "'JetBrains Mono', 'Fira Code', Menlo, monospace",
+            fontLigatures: true,
             lineHeight: 20,
-            minimap: { enabled: true, scale: 0.75 },
+            minimap: { enabled: true, scale: 0.75, showSlider: 'mouseover' },
             scrollBeyondLastLine: false,
             wordWrap: 'on',
             lineNumbers: 'on',
             glyphMargin: true,
             folding: true,
+            foldingHighlight: true,
             renderLineHighlight: 'all',
             padding: { top: 12, bottom: 12 },
             cursorBlinking: 'smooth',
+            cursorSmoothCaretAnimation: 'on',
             smoothScrolling: true,
+            bracketPairColorization: { enabled: true },
+            guides: { indentation: true, bracketPairs: true },
+            renderWhitespace: 'selection',
+            occurrencesHighlight: 'off',
+            overviewRulerLanes: 2,
           }}
         />
       </div>
 
-      {/* Editor Status Footer */}
-      <div className="h-6 px-3 bg-[#0c101a] border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500 font-mono shrink-0">
-        <div className="flex items-center gap-3">
-          <span>UTF-8</span>
-          <span>{getLanguage(selectedFile).toUpperCase()}</span>
+      {/* Status bar */}
+      <div className="h-6 px-3 bg-[#090c16] border-t border-white/[0.05] flex items-center justify-between text-[10px] text-slate-600 font-mono shrink-0">
+        <div className="flex items-center gap-4">
+          <span className="text-slate-500">UTF-8</span>
+          <span className="text-indigo-400/80">{lang.toUpperCase()}</span>
           <span>Spaces: 4</span>
+          {currentFile && (
+            <span className="text-slate-600 truncate max-w-xs">{currentFile}</span>
+          )}
         </div>
-        <div>CodeLens Intelligence Active</div>
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+          <span className="text-slate-500">CodeLens Intelligence Active</span>
+        </div>
       </div>
     </main>
   );
