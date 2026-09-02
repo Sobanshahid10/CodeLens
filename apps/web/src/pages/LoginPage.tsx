@@ -15,6 +15,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import { useRepoStore } from '../stores/repoStore';
+import { useToast } from '../hooks/useToast';
 
 const GithubIcon: React.FC<{ size?: number; className?: string }> = ({ size = 18, className = '' }) => (
   <svg
@@ -35,6 +37,9 @@ const GithubIcon: React.FC<{ size?: number; className?: string }> = ({ size = 18
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const loginWithDemo = useAuthStore((state) => state.loginWithDemo);
+  const createRepo = useRepoStore((state) => state.createRepo);
+  const toast = useToast();
+
   const [demoLoading, setDemoLoading] = useState(false);
   const [customRepoUrl, setCustomRepoUrl] = useState('');
 
@@ -49,11 +54,27 @@ export const LoginPage: React.FC = () => {
     try {
       await loginWithDemo();
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Demo login failed:', err);
+      toast.error('Login failed', err.message || 'Could not initialize demo session');
     } finally {
       setDemoLoading(false);
     }
+  };
+
+  const normalizeGithubUrl = (input: string): string => {
+    let clean = input.trim();
+    if (!clean) return clean;
+    if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+      if (clean.startsWith('github.com/')) {
+        clean = `https://${clean}`;
+      } else if (clean.includes('/')) {
+        clean = `https://github.com/${clean}`;
+      } else {
+        clean = `https://github.com/${clean}`;
+      }
+    }
+    return clean;
   };
 
   const handleCustomRepoSubmit = async (e: React.FormEvent) => {
@@ -62,11 +83,14 @@ export const LoginPage: React.FC = () => {
     setDemoLoading(true);
     try {
       await loginWithDemo();
-      // Store custom repo target in session storage to auto-open in dashboard
-      sessionStorage.setItem('auto_connect_repo', customRepoUrl.trim());
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Failed to initialize session:', err);
+      const targetUrl = normalizeGithubUrl(customRepoUrl);
+      toast.info('Indexing codebase...', targetUrl.replace('https://github.com/', ''));
+      const created = await createRepo(targetUrl, 'main');
+      toast.success('Repository connected!', created.github_full_name);
+      navigate(`/repo/${created.id}`);
+    } catch (err: any) {
+      console.error('Failed to analyze codebase:', err);
+      toast.error('Failed to analyze repository', err.message || 'Check repository URL');
     } finally {
       setDemoLoading(false);
     }
