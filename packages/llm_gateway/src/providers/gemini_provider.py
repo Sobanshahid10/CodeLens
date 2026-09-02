@@ -18,15 +18,15 @@ class GeminiProvider(BaseLLMProvider):
 
     @property
     def embedding_dimensions(self) -> int:
-        return 768
+        return 3072
 
     @property
     def embedding_model_name(self) -> str:
-        return "text-embedding-004"
+        return "gemini-embedding-001"
 
     @property
     def chat_model_name(self) -> str:
-        return "gemini-2.0-flash"
+        return "gemini-3.6-flash"
 
     async def embed(self, texts: list[str]) -> EmbeddingResult:
         loop = asyncio.get_running_loop()
@@ -67,7 +67,6 @@ class GeminiProvider(BaseLLMProvider):
             total_tokens=sum(len(t.split()) for t in texts),
         )
 
-
     async def chat_stream(
         self,
         messages: list[dict[str, Any]],
@@ -75,20 +74,32 @@ class GeminiProvider(BaseLLMProvider):
         max_tokens: int = 2048,
     ) -> AsyncIterator[ChatChunk]:
         loop = asyncio.get_running_loop()
-        model = genai.GenerativeModel(  # type: ignore[attr-defined]
-            self.chat_model_name, system_instruction=system_prompt
-        )
 
         contents = []
         for m in messages:
             role = "user" if m.get("role") in {"user", "system"} else "model"
             contents.append({"role": role, "parts": [m.get("content", "")]})
 
+        # Try active primary model with fallbacks
+        candidate_models = [self.chat_model_name, "gemini-3-flash-preview", "gemini-flash-latest", "gemini-2.5-pro"]
+
         def _stream() -> list[object]:
-            generation_config = genai.types.GenerationConfig(max_output_tokens=max_tokens)
-            return list(
-                model.generate_content(contents, stream=True, generation_config=generation_config)
-            )
+            last_err = None
+            for model_name in candidate_models:
+                try:
+                    model = genai.GenerativeModel(  # type: ignore[attr-defined]
+                        model_name, system_instruction=system_prompt
+                    )
+                    generation_config = genai.types.GenerationConfig(max_output_tokens=max_tokens)
+                    return list(
+                        model.generate_content(contents, stream=True, generation_config=generation_config)
+                    )
+                except Exception as e:
+                    last_err = e
+                    continue
+            if last_err:
+                raise last_err
+            return []
 
         response = await loop.run_in_executor(None, _stream)
 

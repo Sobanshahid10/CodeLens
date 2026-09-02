@@ -39,7 +39,9 @@ export const LoginPage: React.FC = () => {
   const [customRepoUrl, setCustomRepoUrl] = useState('');
 
   const handleGitHubLogin = () => {
-    window.location.href = 'http://localhost:8000/auth/github';
+    // Use a relative URL so it goes through the Vite proxy (/auth → :8000)
+    // instead of hitting port 8000 directly (which isn't a registered GitHub OAuth App)
+    window.location.href = '/auth/github';
   };
 
   const handleDemoLogin = async () => {
@@ -129,7 +131,8 @@ export const LoginPage: React.FC = () => {
 
           <button
             onClick={handleGitHubLogin}
-            className="btn-primary px-4 py-1.5 rounded-lg text-xs font-semibold text-white flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-md shadow-indigo-600/30"
+            title="Requires GITHUB_CLIENT_ID in .env — see README"
+            className="btn-secondary px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all opacity-60 hover:opacity-90"
           >
             <GithubIcon size={14} />
             <span>Sign In</span>
@@ -196,18 +199,25 @@ export const LoginPage: React.FC = () => {
             disabled={demoLoading}
             className="btn-primary px-6 py-3 rounded-xl text-xs font-semibold text-white flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-600/30"
           >
-            <Sparkles size={14} />
+            {demoLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
             <span>Explore Workspace with Sample Code</span>
             <ArrowRight size={14} />
           </button>
 
-          <button
-            onClick={handleGitHubLogin}
-            className="btn-secondary px-6 py-3 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all hover:border-white/30"
-          >
-            <GithubIcon size={15} />
-            <span>Sign in with GitHub</span>
-          </button>
+          {/* GitHub OAuth — requires GITHUB_CLIENT_ID in .env */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={handleGitHubLogin}
+              title="Requires GITHUB_CLIENT_ID configured in .env"
+              className="btn-secondary px-6 py-3 rounded-xl text-xs font-semibold text-slate-400 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all hover:border-white/30 opacity-60 hover:opacity-90"
+            >
+              <GithubIcon size={15} />
+              <span>Sign in with GitHub</span>
+            </button>
+            <span className="text-[10px] text-slate-600">
+              Needs <code className="text-slate-500 font-mono">GITHUB_CLIENT_ID</code> in .env
+            </span>
+          </div>
         </div>
 
         {/* Universal Application Mock Window */}

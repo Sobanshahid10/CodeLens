@@ -20,9 +20,9 @@ def test_provider_properties() -> None:
     assert anthropic.chat_model_name == "claude-3-5-sonnet-20241022"
 
     gemini = GeminiProvider(api_key="mock-key")
-    assert gemini.embedding_dimensions == 768
-    assert gemini.embedding_model_name == "text-embedding-004"
-    assert gemini.chat_model_name == "gemini-2.0-flash"
+    assert gemini.embedding_dimensions == 3072
+    assert gemini.embedding_model_name == "gemini-embedding-001"
+    assert gemini.chat_model_name == "gemini-3.6-flash"
 
 
 def test_router_provider_selection(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -42,7 +42,7 @@ def test_router_provider_selection(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GOOGLE_API_KEY", "mock-google-key")
     provider = get_provider()
     assert isinstance(provider, GeminiProvider)
-    assert provider.embedding_dimensions == 768
+    assert provider.embedding_dimensions == 3072
 
 
 def test_router_invalid_provider(monkeypatch: pytest.MonkeyPatch) -> None:

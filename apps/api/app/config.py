@@ -11,12 +11,14 @@ class Settings(BaseSettings):
     QDRANT_API_KEY: str | None = None
     GITHUB_CLIENT_ID: str = ""
     GITHUB_CLIENT_SECRET: str = ""
+    # The callback must point to the API (port 8000), NOT the frontend
     GITHUB_REDIRECT_URI: str = "http://localhost:8000/auth/github/callback"
     GITHUB_WEBHOOK_SECRET: str = "dev_webhook_secret"
     JWT_SECRET: str = "dev-secret-key-change-in-production"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_DAYS: int = 7
     LLM_PROVIDER: str = "openai"
+    GOOGLE_API_KEY: str | None = None
     ALLOWED_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     model_config = SettingsConfigDict(
