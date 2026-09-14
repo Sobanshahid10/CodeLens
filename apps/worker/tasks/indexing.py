@@ -60,20 +60,25 @@ def _publish_progress(repo_id: str, status: str, progress: int, message: str) ->
         logger.debug(f"Redis publish error: {exc}")
 
 
+def _clone_repository(repo_id: str, clone_url: str) -> str:
+    """Clone a GitHub repository locally."""
+    target_path = f"/tmp/codelens/{repo_id}"
+    if os.path.exists(target_path):
+        shutil.rmtree(target_path, ignore_errors=True)
+    Path(target_path).parent.mkdir(parents=True, exist_ok=True)
+
+    logger.info(f"Cloning {clone_url} to {target_path}")
+    git.Repo.clone_from(clone_url, target_path, depth=1)
+    return target_path
+
+
 @celery_app.task(  # type: ignore[untyped-decorator]
     name="apps.worker.tasks.indexing.clone_repository", bind=True, max_retries=3
 )
 def clone_repository(self: Any, repo_id: str, clone_url: str) -> str:
     """Clone a GitHub repository locally."""
-    target_path = f"/tmp/codelens/{repo_id}"
     try:
-        if os.path.exists(target_path):
-            shutil.rmtree(target_path, ignore_errors=True)
-        Path(target_path).parent.mkdir(parents=True, exist_ok=True)
-
-        logger.info(f"Cloning {clone_url} to {target_path}")
-        git.Repo.clone_from(clone_url, target_path, depth=1)
-        return target_path
+        return _clone_repository(repo_id, clone_url)
     except git.GitCommandError as exc:
         logger.error(f"Git error: {exc}")
         raise self.retry(exc=exc, countdown=5)
@@ -258,7 +263,7 @@ def start_indexing_pipeline(self: Any, repo_id: str, clone_url: str) -> None:
 
     try:
         # Step 1: Clone
-        clone_result = clone_repository.apply(args=[repo_id, clone_url]).get()
+        clone_result = _clone_repository(repo_id, clone_url)
         logger.info(f"Repository cloned to {clone_result}")
         _publish_progress(repo_id, "parsing", 30, "Parsing AST chunks from codebase...")
 
