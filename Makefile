@@ -1,4 +1,7 @@
-.PHONY: up dev down migrate lint test eval
+.PHONY: start up dev down migrate lint test eval
+
+start:
+	./start_all.sh
 
 up:
 	docker-compose up -d

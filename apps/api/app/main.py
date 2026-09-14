@@ -70,8 +70,9 @@ metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
 # 4. Register Routers
-# /auth -> Auth router
+# /auth and /api/v1/auth -> Auth router
 app.include_router(auth_router)
+app.include_router(auth_router, prefix="/api/v1")
 
 # /api/v1/repos -> Repos, Search, Chat, Graph routers
 app.include_router(repos_router, prefix="/api/v1")

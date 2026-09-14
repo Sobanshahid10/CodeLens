@@ -2,7 +2,7 @@
 
 # 💻 CodeLens Web Client (`apps/web`)
 
-### Modern React 18 + Vite + TypeScript Frontend Application
+### React 18 + Vite + TypeScript Enterprise Frontend Workspace
 
 [![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?style=flat-square&logo=react)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.2-646CFF.svg?style=flat-square&logo=vite)](https://vitejs.dev/)
@@ -17,36 +17,36 @@
 
 ## 📖 Overview
 
-The **CodeLens Web Client** is an ultra-fast, modern developer workspace designed for repository visual debugging, AST dependency graph exploration, and streaming AI chat with live code citations.
+The **CodeLens Web Client** is a high-performance developer workspace designed for repository intelligence, AST dependency graph visualization, and real-time streaming RAG assistant chat with line-level code citations.
 
 ---
 
 ## 🧩 Component Architecture
 
-| Component | Description |
-|---|---|
-| [`ChatPanel.tsx`](src/components/ChatPanel.tsx) | SSE streaming chat interface featuring Markdown rendering and line citation cards. |
-| [`CodeViewer.tsx`](src/components/CodeViewer.tsx) | VS Code-powered Monaco Editor integration with line highlighting and syntax support. |
-| [`DependencyGraph.tsx`](src/components/DependencyGraph.tsx) | D3.js force-directed graph visualizer mapping module imports and call topologies. |
-| [`FileTree.tsx`](src/components/FileTree.tsx) | Collapsible workspace file navigation tree with real-time selection state. |
-| [`CommandPalette.tsx`](src/components/CommandPalette.tsx) | Keyboard shortcut overlay (`Cmd+K` / `Cmd+P`) for global quick actions and repository search. |
-| [`IndexingProgress.tsx`](src/components/IndexingProgress.tsx) | Real-time WebSocket listener tracking background repository indexing progress %. |
-| [`ToastContainer.tsx`](src/components/ToastContainer.tsx) | Animated notification system for alerts, info, warnings, and errors. |
-| [`UserMenu.tsx`](src/components/UserMenu.tsx) | User authentication profile menu, plan indicator, and logout control. |
+| Component | Path | Description |
+|---|---|---|
+| **ChatPanel** | `src/components/ChatPanel.tsx` | Real-time SSE streaming chat interface featuring Markdown rendering and line citation cards. |
+| **CodeViewer** | `src/components/CodeViewer.tsx` | Monaco Editor integration with line highlighting and syntax support. |
+| **DependencyGraph** | `src/components/DependencyGraph.tsx` | D3.js force-directed graph visualizer mapping module imports and call topologies. |
+| **FileTree** | `src/components/FileTree.tsx` | Collapsible workspace file navigation tree with selection state. |
+| **CommandPalette** | `src/components/CommandPalette.tsx` | Global keyboard shortcut overlay (`Cmd+K` / `Cmd+P`) for repository navigation. |
+| **IndexingProgress** | `src/components/IndexingProgress.tsx` | Real-time WebSocket listener tracking repository indexing progress %. |
+| **ToastContainer** | `src/components/ToastContainer.tsx` | Animated notification system for alerts, info, warnings, and errors. |
+| **UserMenu** | `src/components/UserMenu.tsx` | Authentication profile menu, plan indicator, and logout control. |
 
 ---
 
 ## ⚡ State Management & Hooks
 
 ### Zustand Stores (`src/stores/`)
-- `authStore.ts` — Manages GitHub OAuth tokens, user profiles, local storage sync, and demo authentication.
+- `authStore.ts` — Handles GitHub OAuth tokens, user profiles, local storage sync, and demo authentication.
 - `repoStore.ts` — Maintains active workspace repository context, selected files, and tree nodes.
 - `commandPaletteStore.ts` — Controls global modal visibility and keyboard shortcuts (`Cmd+K`).
 
 ### Custom Hooks (`src/hooks/`)
-- `useSSEChat.ts` — Handles Server-Sent Events stream for AI response generation and citation extraction.
+- `useSSEChat.ts` — Manages Server-Sent Events stream for AI response generation and citation extraction.
 - `useIndexingProgress.ts` — Establishes WebSocket connections for real-time repository ingestion updates.
-- `useToast.ts` — Convenience hook for triggering user notifications (`success`, `error`, `info`, `warning`).
+- `useToast.ts` — Hook for triggering user notifications (`success`, `error`, `info`, `warning`).
 
 ---
 
@@ -60,15 +60,15 @@ The **CodeLens Web Client** is an ultra-fast, modern developer workspace designe
 
 ---
 
-## 🧪 Automated Testing Suite (`test_frontend.sh`)
+## 🧪 Automated 10-Gate Quality Assurance (`test_frontend.sh`)
 
-The web app includes an automated **10-Gate Quality Assurance Script**:
+The web client includes an automated **10-Gate Quality Assurance Test Suite**:
 
 ```bash
 # Execute full QA test suite
 ./test_frontend.sh
 
-# Run without browser server or re-installing packages
+# Fast execution (skips npm install & browser execution)
 ./test_frontend.sh --skip-browser --skip-install
 ```
 

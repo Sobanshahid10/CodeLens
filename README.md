@@ -11,11 +11,11 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Qdrant](https://img.shields.io/badge/Qdrant-v1.13-dc2626.svg?style=flat-square&logo=qdrant)](https://qdrant.tech/)
 [![Docker](https://img.shields.io/badge/Docker-Compose_9_Services-2496ED.svg?style=flat-square&logo=docker)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-10--Gate_QA_Suite-brightgreen.svg?style=flat-square)](#-frontend-quality-assurance--testing-suite)
+[![Tests](https://img.shields.io/badge/Tests-10--Gate_QA_Passed-brightgreen.svg?style=flat-square)](#-frontend-quality-assurance--testing-suite)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
 <p align="center">
-  <b>CodeLens</b> is a production-ready, full-stack developer intelligence platform that indexes repositories using AST parsing, hybrid dense/sparse vector retrieval (RRF), interactive force-directed graph visualizers, and streaming RAG chat with inline line-level code citations.
+  <b>CodeLens</b> is a high-performance codebase intelligence platform. It indexes multi-language repositories using AST parsing, hybrid dense/sparse vector retrieval ($RRF, k=60$), D3.js force-directed dependency graph visualizers, and streaming RAG chat with line-level code citations.
 </p>
 
 </div>
@@ -33,25 +33,25 @@
 - [Backend & Infrastructure Operations](#-backend--infrastructure-operations)
 - [Environment Configuration](#-environment-configuration)
 - [Project Directory Structure](#-project-directory-structure)
-- [Contributing & License](#-contributing--license)
+- [License](#-license)
 
 ---
 
 ## 🔍 Overview
 
-CodeLens transforms complex codebases into interactive, queryable visual intelligence. By combining AST parsing across multiple programming languages with hybrid dense/sparse retrieval and real-time Server-Sent Events (SSE), developers can inspect dependency graphs, navigate code in a browser-embedded Monaco Editor, and ask natural language questions with precise file line citations.
+CodeLens turns complex, multi-thousand file repositories into interactive visual workspace graphs. By coupling multi-language AST symbol extraction with hybrid vector search and real-time Server-Sent Events (SSE), engineers can query their codebases in natural language, visually inspect dependency topologies, and trace logic using embedded Monaco Editor views.
 
 ---
 
 ## ✨ Key Features
 
-- **🌳 AST-Aware Semantic Parsing**: Parses 8+ languages using Tree-Sitter for syntax-aware code chunking and symbol mapping.
-- **⚡ Hybrid Dense + Sparse Retrieval**: Blends Qdrant HNSW dense vectors with BM25 sparse vectors via Reciprocal Rank Fusion ($RRF, k=60$).
-- **💬 SSE Streaming RAG Chat**: Real-time answer streaming with interactive citation cards linking directly to exact line ranges in the editor.
-- **📊 D3.js Force-Directed Dependency Graphs**: Interactive visualizer maps module imports, dependencies, and file relationships.
-- **💻 Monaco Code Editor Workspace**: 3-panel split view featuring a workspace file tree, Monaco code editor, and chat assistant panel.
-- **🔒 Multi-Tenant Row-Level Security (RLS)**: PostgreSQL engine-enforced tenant isolation and sliding-window Redis rate limiting.
-- **📈 Comprehensive Observability**: Prometheus metrics exporter paired with Grafana dashboards for monitoring indexing queues and RAG latency.
+- **🌳 AST-Aware Semantic Parsing**: Multi-language AST chunking via Tree-Sitter (8+ grammars) preserves function, class, and interface boundaries instead of arbitrary token cuts.
+- **⚡ Hybrid Dense + Sparse Retrieval (RRF)**: Combines Qdrant HNSW dense semantic embeddings with BM25 sparse keyword vectors via Reciprocal Rank Fusion ($k=60$).
+- **💬 SSE Streaming RAG Chat**: Real-time streaming conversational assistant providing answer streams with clickable line-level code citations.
+- **📊 D3.js Force-Directed Dependency Graph**: Interactive topology viewer rendering call graphs, module dependencies, and import structures.
+- **💻 3-Panel Monaco Editor Workspace**: VS Code-powered editor integration featuring a live workspace file tree, code viewer, and assistant panel.
+- **🔒 PostgreSQL Engine Row-Level Security (RLS)**: Enforces strict multi-tenant isolation at the database level paired with Redis sliding-window rate limiting.
+- **📈 Native Observability Suite**: Integrated Prometheus metrics collection and pre-configured Grafana dashboards for job queues and RAG latency profiling.
 
 ---
 
@@ -95,15 +95,16 @@ CodeLens transforms complex codebases into interactive, queryable visual intelli
 
 ## 🛠️ Technology Stack
 
-| Layer | Technologies Used |
-|---|---|
-| **Frontend App** | React 18, Vite 6, TypeScript 5, TailwindCSS 3, Zustand, TanStack Query v5 |
-| **Code Editor & Viz** | `@monaco-editor/react`, D3.js v7 (force-directed), Lucide React |
-| **API Gateway** | Python 3.12, FastAPI, AsyncPG, Pydantic v2 |
-| **Parsing & ML** | Tree-Sitter (8 grammars), Qdrant Vector Engine (Dense + BM25), OpenAI / Anthropic / Gemini |
-| **Background Processing** | Celery 5, Redis 7 (Broker & Rate Limiting), Flower |
-| **Database & Auth** | PostgreSQL 16 (`pgvector` + RLS), GitHub OAuth, JWT Bearer Auth |
-| **Monitoring & QA** | Prometheus 2.52, Grafana 11, Pytest, Custom 10-Gate Bash Frontend Test Engine |
+| Domain | Technology / Library | Description |
+|---|---|---|
+| **Frontend Platform** | React 18, Vite 6, TypeScript 5 | Lightning-fast HMR & build environment |
+| **Styling & State** | TailwindCSS 3, Zustand 5, TanStack Query v5 | Responsive UI tokens and unified store management |
+| **Editor & Graph** | `@monaco-editor/react`, D3.js v7, Lucide React | VS Code editing engine & force-directed visualization |
+| **API Gateway** | Python 3.12, FastAPI, AsyncPG, Pydantic v2 | High-concurrency async HTTP/WS backend |
+| **Vector Engine & RAG** | Qdrant v1.13, Tree-Sitter, OpenAI / Anthropic / Gemini | Dense HNSW + Sparse BM25 hybrid search |
+| **Task Queue & Cache** | Celery 5, Redis 7, Flower | Distributed asynchronous worker processing |
+| **Persistence & Security**| PostgreSQL 16 (`pgvector` + RLS), JWT Auth | Engine-level tenant isolation & vector storage |
+| **Monitoring & QA** | Prometheus 2.52, Grafana 11, Pytest | Production metrics telemetry & health monitoring |
 
 ---
 
@@ -111,11 +112,11 @@ CodeLens transforms complex codebases into interactive, queryable visual intelli
 
 ### Prerequisites
 
-Ensure you have the following installed on your machine:
+Ensure the following tools are installed locally:
 - **Node.js**: $\ge 18.0.0$ (LTS recommended)
 - **npm**: $\ge 9.0.0$
-- **Docker & Docker Compose**: Docker $\ge 24.0$
-- **Python**: $\ge 3.12$ (for backend development)
+- **Docker & Docker Compose**: Docker Engine $\ge 24.0$
+- **Python**: $\ge 3.12$ (for backend services)
 
 ---
 
@@ -153,35 +154,35 @@ cd apps/web
 # Install dependencies
 npm install
 
-# Start local Vite development server (runs on http://localhost:3000)
+# Start local Vite dev server (http://localhost:3000)
 npm run dev
 ```
 
-Available web app scripts in `apps/web/package.json`:
-- `npm run dev` — Launches Vite dev server with proxy to backend (`http://localhost:8000`).
-- `npm run build` — Runs TypeScript compiler (`tsc --noEmit`) and creates optimized bundle via Vite.
+Available scripts in `apps/web/package.json`:
+- `npm run dev` — Launches Vite dev server with backend API proxy (`http://localhost:8000`).
+- `npm run build` — Runs TypeScript compiler (`tsc --noEmit`) and creates production build.
 - `npm run preview` — Serves local production build on `http://localhost:4173`.
-- `bash test_frontend.sh` — Executes complete 10-gate automated frontend QA test suite.
+- `bash test_frontend.sh` — Executes the complete 10-gate frontend QA test suite.
 
 ---
 
 ## 🧪 Frontend Quality Assurance & Testing Suite
 
-CodeLens includes an **automated 10-Gate Frontend Test Suite** located at [`apps/web/test_frontend.sh`](file:///Users/muhammadsoban/CodeLens/apps/web/test_frontend.sh). It validates type safety, code quality, state management logic, routing, API networking, environment security, and live browser rendering.
+CodeLens features a custom **10-Gate Automated Frontend QA Engine** located at [`apps/web/test_frontend.sh`](file:///Users/muhammadsoban/CodeLens/apps/web/test_frontend.sh). It validates type safety, source audits, store state logic, routing integrity, API reachability, and browser rendering.
 
-### Running the Frontend Quality Suite
+### Running the Frontend Test Suite
 
 ```bash
 cd apps/web
 
-# Run full test suite (including npm install and live browser server test)
+# Full execution (includes npm install & background browser check)
 ./test_frontend.sh
 
-# Fast test run (skip npm install & skip background browser execution)
+# Fast execution (skips npm install & browser spawn)
 ./test_frontend.sh --skip-browser --skip-install
 ```
 
-### The 10 Automated Quality Gates
+### Breakdown of the 10 Quality Gates
 
 ```
   ╔══════════════════════════════════════════════════╗
@@ -189,56 +190,51 @@ cd apps/web
   ╚══════════════════════════════════════════════════╝
 ```
 
-1. **📦 1. Dependency Integrity Verification**: Verifies presence of `node_modules` and audits critical packages (`react`, `@tanstack/react-query`, `zustand`, `@monaco-editor/react`, `d3`, `lucide-react`).
-2. **🔷 2. Strict TypeScript Type-Check (`tsc --noEmit`)**: Ensures zero type errors across all `.ts` and `.tsx` source files.
-3. **🏗️ 3. Production Build Validation (`vite build`)**: Compiles production distribution bundles and verifies generation of `dist/index.html`.
-4. **📊 4. Bundle Size & Chunk Analysis**: Measures output chunk sizes, warning if any chunk exceeds the 500 KB performance threshold.
-5. **🔍 5. Source Code Audit**:
-   - Detects stray `console.log` / `console.error` calls.
-   - Audits unresolved `TODO`, `FIXME`, and `HACK` comments.
-   - Verifies explicit named exports for all Components, Pages, Hooks, Stores, and Libs.
-6. **🛣️ 6. Route Coverage Check**: Scans `App.tsx` for route definitions (`/login`, `/dashboard`, `/repo/:repoId`, `/repo/:repoId/graph`, `/auth/callback`) and verifies `ProtectedRoute` wrappers.
-7. **⚡ 7. Zustand Store & Hook Logic Smoke Tests**: Executes isolated Node.js ESM unit tests for:
-   - **Toast Notifications**: ID uniqueness, default/custom durations, state removal, and all 4 toast types.
-   - **Auth Store**: LocalStorage token persistence, clearToken, and authentication status transitions.
-   - **API Client**: Endpoint URL formatting, query parameter building, and header injection.
-   - **Route Guards**: Unauthenticated redirect logic.
-8. **🌐 8. API Gateway Health & Network Test**: Tests HTTP reachability against backend API endpoints (`/health` and `/api/v1/auth/demo`).
-9. **🔑 9. Environment Security Audit**: Compares `.env` against `.env.example` to ensure all mandatory keys are populated.
-10. **🌐 10. Live Browser Smoke Test**: Starts a background Vite dev server instance on port `3000`, verifies HTTP 200 responses on key routes, and checks `#root` React DOM mount points.
+| Gate | Name | Description & Verification Standard |
+|:---:|---|---|
+| **1** | **Dependency Integrity** | Verifies presence of `node_modules` and required core libraries (`react`, `@tanstack/react-query`, `zustand`, `@monaco-editor/react`, `d3`, `lucide-react`). |
+| **2** | **TypeScript Type-Check** | Runs `npx tsc --noEmit` across all `.ts` and `.tsx` source files to guarantee zero type errors. |
+| **3** | **Production Build** | Executes `vite build` to verify clean production compilation and distribution output. |
+| **4** | **Bundle Size Analysis** | Measures JavaScript chunk sizes, issuing warnings if any single chunk exceeds 500 KB. |
+| **5** | **Source File Audit** | Scans for stray `console.log` statements, unresolved `TODO`/`FIXME` tags, and verifies explicit named exports for components, pages, hooks, and stores. |
+| **6** | **Route Coverage Check** | Audits route declarations (`/login`, `/dashboard`, `/repo/:repoId`, `/repo/:repoId/graph`, `/auth/callback`) in `App.tsx` and checks `ProtectedRoute` wrapping. |
+| **7** | **Store & Hook Logic** | Runs inline Node.js unit-smoke tests for Zustand Toast & Auth stores, API URL builders, and route redirection logic (**16/16 passed**). |
+| **8** | **API Network Test** | Tests backend HTTP reachability at `http://localhost:8000/health` and `/api/v1/auth/demo`. |
+| **9** | **Environment Audit** | Compares key definitions between `.env` and `.env.example`. |
+| **10** | **Browser Live Verification** | Launches background dev server on port `3000`, checking HTTP 200 responses and DOM `#root` mount point. |
 
 ---
 
 ## 🔧 Backend & Infrastructure Operations
 
-Run standard development operations using the root `Makefile`:
+Execute operations using root `Makefile` shortcuts:
 
 ```bash
-make up       # Launch Docker containers in detached mode
-make dev      # Launch live development environment with container logs
-make down     # Stop all containers and remove volumes
-make migrate  # Apply latest Alembic database migrations
-make lint     # Run Ruff check and MyPy type checker on Python codebase
-make test     # Execute Pytest suite with coverage reports
-make eval     # Run RAGAS ground-truth evaluation suite
+make up       # Launch all 9 Docker containers in background
+make dev      # Launch dev environment with streaming service logs
+make down     # Terminate all containers and purge volumes
+make migrate  # Apply Alembic schema migrations
+make lint     # Execute Ruff linter and MyPy static type analyzer
+make test     # Execute Pytest test suite with coverage
+make eval     # Execute RAGAS ground-truth evaluation pipeline
 ```
 
 ---
 
 ## 🔐 Environment Configuration
 
-Key environment variables defined in `.env.example`:
+Key configuration parameters in `.env`:
 
-| Key | Description | Example / Default |
+| Key | Purpose | Default / Format |
 |---|---|---|
-| `POSTGRES_PASSWORD` | Database connection password | `codelens_dev_pass` |
-| `REDIS_PASSWORD` | Redis auth password | `redis_dev_pass` |
-| `QDRANT_API_KEY` | Vector DB API key | `qdrant_dev_key` |
-| `JWT_SECRET` | Secret key for JWT auth tokens | `super-secret-jwt-key` |
-| `GITHUB_CLIENT_ID` | OAuth application client ID | `your_github_client_id` |
-| `GITHUB_CLIENT_SECRET` | OAuth application client secret | `your_github_client_secret` |
-| `LLM_PROVIDER` | LLM Gateway strategy (`openai`, `anthropic`, `gemini`) | `openai` |
-| `OPENAI_API_KEY` | OpenAI API key for embeddings & chat | `sk-...` |
+| `POSTGRES_PASSWORD` | PostgreSQL superuser password | `codelens_dev_pass` |
+| `REDIS_PASSWORD` | Redis authentication password | `redis_dev_pass` |
+| `QDRANT_API_KEY` | Vector DB security key | `qdrant_dev_key` |
+| `JWT_SECRET` | Signing key for authorization tokens | `super-secret-jwt-key` |
+| `GITHUB_CLIENT_ID` | OAuth application ID | `your_github_client_id` |
+| `GITHUB_CLIENT_SECRET` | OAuth application secret | `your_github_client_secret` |
+| `LLM_PROVIDER` | Swappable LLM strategy (`openai`, `anthropic`, `gemini`) | `openai` |
+| `OPENAI_API_KEY` | OpenAI secret API key | `sk-...` |
 
 ---
 
@@ -247,35 +243,33 @@ Key environment variables defined in `.env.example`:
 ```
 CodeLens/
 ├── apps/
-│   ├── api/                  # FastAPI web gateway & controllers
-│   ├── eval/                 # RAGAS ground-truth evaluation scripts
-│   ├── web/                  # React 18 + Vite frontend workspace
+│   ├── api/                  # FastAPI Web Gateway, Controllers & Middleware
+│   ├── eval/                 # RAGAS Ground-Truth Evaluation Suite
+│   ├── web/                  # React 18 + Vite Web Application
 │   │   ├── src/
-│   │   │   ├── components/   # ChatPanel, Monaco Viewer, D3 Graph, FileTree, etc.
-│   │   │   ├── hooks/        # Custom React hooks (useSSEChat, useToast, etc.)
-│   │   │   ├── lib/          # API client, Auth, SSE handlers
+│   │   │   ├── components/   # ChatPanel, CodeViewer, DependencyGraph, FileTree, etc.
+│   │   │   ├── hooks/        # Custom React Hooks (useSSEChat, useToast, etc.)
+│   │   │   ├── lib/          # API Client, Auth, SSE Event Stream Listeners
 │   │   │   ├── pages/        # Dashboard, Workspace, Graph, Login, AuthCallback
-│   │   │   └── stores/       # Zustand state stores (auth, repo, palette)
+│   │   │   └── stores/       # Zustand State Stores (authStore, repoStore, palette)
 │   │   └── test_frontend.sh  # 10-Gate Automated Frontend QA Script
-│   └── worker/               # Celery worker background tasks
+│   └── worker/               # Celery Asynchronous Background Task Queue
 ├── packages/
-│   ├── ast_parser/           # Tree-sitter multi-language AST chunking engine
-│   ├── core/                 # Shared data models, interfaces, DB utils
-│   └── llm_gateway/          # Strategy-pattern client for OpenAI/Anthropic/Gemini
+│   ├── ast_parser/           # Tree-sitter Multi-Language Code Parsing Engine
+│   ├── core/                 # Shared Data Models, ORM Schemas, DB Utilities
+│   └── llm_gateway/          # Swappable Strategy Client for OpenAI/Anthropic/Gemini
 ├── infra/
-│   ├── docker/               # Dockerfiles for API, Worker, Postgres
-│   ├── grafana/              # Grafana dashboards & provisioning
-│   └── prometheus/           # Prometheus metrics configuration
-├── docker-compose.yml        # 9-service production configuration
-├── docker-compose.dev.yml    # Development override configuration
-├── Makefile                  # CLI operation shortcut commands
-└── README.md                 # Primary documentation
+│   ├── docker/               # Microservice Dockerfiles (API, Worker, Postgres)
+│   ├── grafana/              # Telemetry Dashboards & Provisioning
+│   └── prometheus/           # Prometheus Telemetry Collector Configuration
+├── docker-compose.yml        # 9-Service Infrastructure Manifest
+├── docker-compose.dev.yml    # Local Development Override Configuration
+├── Makefile                  # Operational Command Shortcuts
+└── README.md                 # Project Documentation
 ```
 
 ---
 
-## 📄 License & Acknowledgments
+## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
-
-Built with ❤️ for developers who love clean architecture, deep codebase insights, and seamless AI workflow integration.
+This repository is licensed under the [MIT License](LICENSE).
