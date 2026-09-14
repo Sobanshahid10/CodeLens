@@ -457,16 +457,16 @@ fi
 # =============================================================================
 section "8 · API Client Network Smoke Test"
 
-API_BASE="http://localhost:8000"
+API_BASE="http://127.0.0.1:8000"
 
 info "Checking if backend API is reachable at ${API_BASE} …"
 if curl -sf --max-time 3 "${API_BASE}/health" -o /dev/null 2>/dev/null; then
   pass "Backend reachable at ${API_BASE}/health"
 
-  info "Testing /api/v1/auth/demo endpoint …"
+  info "Testing /auth/demo endpoint …"
   DEMO_RESP=$(curl -sf --max-time 5 -X POST \
     -H "Content-Type: application/json" \
-    "${API_BASE}/api/v1/auth/demo" 2>/dev/null || echo "FAILED")
+    "${API_BASE}/auth/demo" 2>/dev/null || echo "FAILED")
 
   if echo "$DEMO_RESP" | grep -q "access_token"; then
     pass "/auth/demo returned access_token"

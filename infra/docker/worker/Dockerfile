@@ -29,11 +29,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /root/.local /root/.local
-COPY packages/ /packages/
+COPY packages/ /app/packages/
 COPY apps/ /app/apps/
 
 ENV PATH=/root/.local/bin:$PATH
-ENV PYTHONPATH=/app:/packages/core/src:/packages/ast-parser/src:/packages/llm-gateway/src:$PYTHONPATH
+ENV PYTHONPATH=/app:$PYTHONPATH
 ENV PYTHONUNBUFFERED=1
 
 CMD ["celery", "-A", "apps.worker.celery_app", "worker", "--loglevel=info", "-Q", "high,default,low", "--concurrency=4"]

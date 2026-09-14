@@ -23,17 +23,19 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    git \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /root/.local /root/.local
-COPY packages/ /packages/
-COPY apps/api/ .
+COPY packages/ /app/packages/
+COPY apps/ /app/apps/
 
 ENV PATH=/root/.local/bin:$PATH
-ENV PYTHONPATH=/app:/packages/core/src:/packages/ast-parser/src:/packages/llm-gateway/src:$PYTHONPATH
+ENV PYTHONPATH=/app:$PYTHONPATH
 ENV PYTHONUNBUFFERED=1
+ENV GIT_PYTHON_REFRESH=quiet
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "apps.api.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

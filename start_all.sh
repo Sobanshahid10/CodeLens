@@ -84,7 +84,7 @@ check_service() {
 
 check_service "Frontend Web App"   "http://localhost:3000"
 check_service "API Gateway"        "http://localhost:8000/health"
-check_service "API Auth Endpoint"  "http://localhost:8000/api/v1/auth/demo" "200"
+check_service "API Auth Endpoint"  "http://127.0.0.1:8000/auth/demo" "200"
 check_service "Qdrant Vector DB"   "http://localhost:6333/dashboard" "200"
 check_service "Flower Celery UI"   "http://localhost:5555"
 check_service "Grafana Dashboard"  "http://localhost:3001"
