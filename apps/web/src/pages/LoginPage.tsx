@@ -42,10 +42,10 @@ export const LoginPage: React.FC = () => {
 
   const [demoLoading, setDemoLoading] = useState(false);
   const [customRepoUrl, setCustomRepoUrl] = useState('');
+  const [activeTab, setActiveTab] = useState<'search' | 'graph' | 'chat'>('chat');
+  const [activeCitation, setActiveCitation] = useState<number>(1);
 
   const handleGitHubLogin = () => {
-    // Use a relative URL so it goes through the Vite proxy (/auth → :8000)
-    // instead of hitting port 8000 directly (which isn't a registered GitHub OAuth App)
     window.location.href = '/auth/github';
   };
 
@@ -96,28 +96,36 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const quickRepos = [
+    { label: 'fastapi/fastapi', url: 'https://github.com/tiangolo/fastapi', lang: 'Python' },
+    { label: 'shadcn/ui', url: 'https://github.com/shadcn-ui/ui', lang: 'TypeScript' },
+    { label: 'golang/go', url: 'https://github.com/golang/go', lang: 'Go' },
+    { label: 'rust-lang/rust', url: 'https://github.com/rust-lang/rust', lang: 'Rust' },
+  ];
+
   return (
-    <div className="min-h-screen w-full bg-[#030712] text-slate-100 flex flex-col justify-between relative overflow-hidden selection:bg-indigo-500/30 selection:text-indigo-200">
-      {/* Diffused Ambient Lights */}
+    <div className="min-h-screen w-full bg-[#02050e] text-slate-100 flex flex-col justify-between relative overflow-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
+      {/* Background Animated Grids & Ambient Glows */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b12_1px,transparent_1px),linear-gradient(to_bottom,#1e293b12_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
       <div className="ambient-glow-top" />
       <div className="ambient-glow-center" />
 
       {/* Top Navbar */}
-      <header className="w-full h-16 px-6 sm:px-12 flex items-center justify-between border-b border-white/[0.06] backdrop-blur-xl bg-[#030712]/70 sticky top-0 z-50">
+      <header className="w-full h-16 px-6 sm:px-12 flex items-center justify-between border-b border-white/[0.08] backdrop-blur-2xl bg-[#02050e]/80 sticky top-0 z-50">
         <div
           className="flex items-center gap-3 cursor-pointer group"
           onClick={handleDemoLogin}
           title="Open CodeLens Dashboard"
         >
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 group-hover:bg-indigo-500 flex items-center justify-center text-white shadow-md shadow-indigo-600/30 transition-all duration-200 group-hover:scale-105">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 group-hover:from-cyan-400 group-hover:to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25 transition-all duration-300 group-hover:scale-105 group-hover:rotate-3">
             <Code2 size={18} />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white tracking-tight group-hover:text-indigo-300 transition-colors">
-              CodeLens
+            <span className="text-base font-black text-white tracking-tight group-hover:text-cyan-300 transition-colors font-mono">
+              CodeLens<span className="text-cyan-400">.ai</span>
             </span>
-            <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-              Universal AI
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 shadow-sm shadow-cyan-500/10">
+              AST Engine
             </span>
           </div>
         </div>
@@ -125,21 +133,21 @@ export const LoginPage: React.FC = () => {
         <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-slate-400">
           <a
             href="#features"
-            className="hover:text-white hover:underline underline-offset-4 transition-all cursor-pointer"
+            className="hover:text-cyan-300 transition-colors cursor-pointer"
           >
-            Features
+            Capabilities
           </a>
           <a
             href="#architecture"
-            className="hover:text-white hover:underline underline-offset-4 transition-all cursor-pointer"
+            className="hover:text-cyan-300 transition-colors cursor-pointer"
           >
-            Architecture
+            System Graph
           </a>
           <button
             onClick={handleDemoLogin}
-            className="hover:text-white hover:underline underline-offset-4 transition-all cursor-pointer text-xs"
+            className="hover:text-cyan-300 transition-colors cursor-pointer text-xs"
           >
-            Connect Any Repo
+            Live Demo
           </button>
         </nav>
 
@@ -147,160 +155,181 @@ export const LoginPage: React.FC = () => {
           <button
             onClick={handleDemoLogin}
             disabled={demoLoading}
-            className="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-200 transition-all flex items-center gap-1.5 cursor-pointer hover:border-indigo-500/40 hover:scale-105 active:scale-95"
+            className="relative group px-4 py-1.5 rounded-lg text-xs font-semibold text-white overflow-hidden bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 transition-all duration-300 shadow-md shadow-cyan-500/20 active:scale-95 flex items-center gap-1.5"
           >
-            {demoLoading ? <Loader2 size={13} className="animate-spin text-indigo-400" /> : <Sparkles size={13} className="text-indigo-400" />}
-            <span>Explore Demo</span>
+            {demoLoading ? <Loader2 size={13} className="animate-spin text-white" /> : <Sparkles size={13} className="text-cyan-200" />}
+            <span>Launch Workspace</span>
           </button>
 
           <button
             onClick={handleGitHubLogin}
             title="Requires GITHUB_CLIENT_ID in .env — see README"
-            className="btn-secondary px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all opacity-60 hover:opacity-90"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 border border-white/10 hover:border-white/25 bg-white/[0.03] hover:text-white flex items-center gap-2 cursor-pointer transition-all active:scale-95"
           >
             <GithubIcon size={14} />
-            <span>Sign In</span>
+            <span className="hidden sm:inline">Sign In</span>
           </button>
         </div>
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-14 pb-20 text-center max-w-6xl mx-auto w-full relative z-10">
-        {/* Universal Capability Badge */}
+      <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-16 pb-20 text-center max-w-6xl mx-auto w-full relative z-10">
+        {/* Interactive Capability Pill */}
         <div
           onClick={handleDemoLogin}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-indigo-500/40 text-slate-300 hover:text-white text-xs font-medium mb-6 cursor-pointer transition-all duration-200 hover:scale-105 hover:bg-white/[0.06] shadow-sm"
+          className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-cyan-950/40 border border-cyan-500/30 hover:border-cyan-400/60 text-cyan-200 text-xs font-medium mb-8 cursor-pointer transition-all duration-300 hover:scale-105 shadow-[0_0_20px_-3px_rgba(6,182,212,0.35)]"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-          <span className="font-semibold text-indigo-300">Works with ANY GitHub repository</span>
-          <span className="text-slate-500">•</span>
-          <span>Python, TypeScript, Go, Rust, Java & more</span>
-          <ArrowRight size={12} className="text-indigo-400" />
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+          </span>
+          <span className="font-bold text-white tracking-wide">AST SEMANTIC INTELLIGENCE</span>
+          <span className="text-cyan-500/60">•</span>
+          <span className="text-cyan-300/90">Line-Level Citation RAG</span>
+          <ArrowRight size={13} className="text-cyan-400" />
         </div>
 
-        {/* Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-[-0.03em] max-w-4xl leading-[1.05] mb-6 hero-headline" style={{ fontFamily: 'Outfit, Inter, sans-serif' }}>
-          AI Codebase Intelligence{' '}
+        {/* Dynamic & Balanced Hero Headline */}
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight max-w-4xl leading-[1.12] mb-5">
+          <span className="text-white">Turn Any Repository </span>
           <br className="hidden sm:inline" />
-          For Every Repository
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 drop-shadow-[0_0_25px_rgba(6,182,212,0.2)]">
+            Into an Interactive Map.
+          </span>
         </h1>
 
         {/* Subtitle */}
-        <p className="text-base sm:text-lg text-slate-400 max-w-2xl mb-8 leading-relaxed">
-          Paste any public or private GitHub repository URL to index AST chunks, query with Gemini 3.6 Flash, inspect interactive line citations, and view force-directed module graphs.
+        <p className="text-sm sm:text-base text-slate-300 max-w-xl mb-8 leading-relaxed font-normal">
+          Engineered for high-complexity repos. AST chunking, hybrid dense/sparse vector retrieval, and instant line-level citations in an interactive 3-panel workspace.
         </p>
 
-        {/* Quick URL Input Bar: Index ANY Repo in the World */}
-        <form
-          onSubmit={handleCustomRepoSubmit}
-          className="w-full max-w-xl flex flex-col sm:flex-row items-center gap-2 bg-[#090d16] border border-white/[0.12] hover:border-indigo-500/50 p-1.5 rounded-2xl shadow-xl shadow-indigo-950/40 mb-8 transition-all focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20"
-        >
-          <div className="flex items-center gap-2 pl-3 flex-1 w-full">
-            <Globe size={16} className="text-indigo-400 shrink-0" />
-            <input
-              type="text"
-              placeholder="Paste ANY GitHub URL (e.g. github.com/facebook/react)..."
-              value={customRepoUrl}
-              onChange={(e) => setCustomRepoUrl(e.target.value)}
-              className="w-full bg-transparent text-xs text-white placeholder:text-slate-500 focus:outline-none font-mono py-2"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={demoLoading}
-            className="btn-primary w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-1.5 cursor-pointer shrink-0 hover:scale-105 active:scale-95 transition-all shadow-md shadow-indigo-600/30"
+        {/* Live Interactive GitHub URL Input */}
+        <div className="w-full max-w-2xl mb-4">
+          <form
+            onSubmit={handleCustomRepoSubmit}
+            className="flex flex-col sm:flex-row items-center gap-2 bg-[#090e1a]/90 backdrop-blur-xl border border-cyan-500/30 hover:border-cyan-400/70 p-2 rounded-2xl shadow-[0_0_35px_-5px_rgba(6,182,212,0.25)] transition-all focus-within:border-cyan-400 focus-within:ring-2 focus-within:ring-cyan-500/20"
           >
-            {demoLoading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-            <span>Analyze Codebase</span>
-            <ArrowRight size={13} />
-          </button>
-        </form>
-
-        {/* Primary Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
-          <button
-            onClick={handleDemoLogin}
-            disabled={demoLoading}
-            className="btn-primary px-6 py-3 rounded-xl text-xs font-semibold text-white flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-600/30"
-          >
-            {demoLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-            <span>Explore Workspace with Sample Code</span>
-            <ArrowRight size={14} />
-          </button>
-
-          {/* GitHub OAuth — requires GITHUB_CLIENT_ID in .env */}
-          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-3 pl-3.5 flex-1 w-full">
+              <Globe size={18} className="text-cyan-400 shrink-0 animate-pulse" />
+              <input
+                type="text"
+                placeholder="Paste ANY GitHub URL (e.g. github.com/tiangolo/fastapi)..."
+                value={customRepoUrl}
+                onChange={(e) => setCustomRepoUrl(e.target.value)}
+                className="w-full bg-transparent text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none font-mono py-2"
+              />
+            </div>
             <button
-              onClick={handleGitHubLogin}
-              title="Requires GITHUB_CLIENT_ID configured in .env"
-              className="btn-secondary px-6 py-3 rounded-xl text-xs font-semibold text-slate-400 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all hover:border-white/30 opacity-60 hover:opacity-90"
+              type="submit"
+              disabled={demoLoading}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 flex items-center justify-center gap-2 cursor-pointer shrink-0 transition-all active:scale-95 shadow-md shadow-cyan-500/30"
             >
-              <GithubIcon size={15} />
-              <span>Sign in with GitHub</span>
+              {demoLoading ? <Loader2 size={14} className="animate-spin text-white" /> : <Zap size={14} className="text-cyan-200 fill-cyan-200" />}
+              <span>Analyze Now</span>
+              <ArrowRight size={14} />
             </button>
-            <span className="text-[10px] text-slate-600">
-              Needs <code className="text-slate-500 font-mono">GITHUB_CLIENT_ID</code> in .env
-            </span>
+          </form>
+
+          {/* Quick-Click Sample Repos */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-[11px] text-slate-400">
+            <span className="text-slate-500 font-mono">Try instantly:</span>
+            {quickRepos.map((repo) => (
+              <button
+                key={repo.label}
+                type="button"
+                onClick={() => setCustomRepoUrl(repo.url)}
+                className="px-2.5 py-1 rounded-md bg-white/[0.04] hover:bg-cyan-500/15 border border-white/[0.08] hover:border-cyan-500/40 text-slate-300 hover:text-cyan-300 font-mono transition-all cursor-pointer"
+              >
+                {repo.label} <span className="text-slate-500 text-[9px]">{repo.lang}</span>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Universal Application Mock Window */}
+        {/* Primary Action Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-4 mt-6 mb-16">
+          <button
+            onClick={handleDemoLogin}
+            disabled={demoLoading}
+            className="px-7 py-3.5 rounded-xl text-xs sm:text-sm font-bold bg-white hover:bg-slate-100 text-slate-950 flex items-center gap-2 cursor-pointer transition-all active:scale-95 shadow-[0_0_25px_rgba(255,255,255,0.2)] hover:shadow-[0_0_35px_rgba(255,255,255,0.35)]"
+          >
+            {demoLoading ? <Loader2 size={15} className="animate-spin text-slate-950" /> : <Sparkles size={15} className="text-slate-950 fill-slate-950" />}
+            <span>Explore Interactive Demo Workspace</span>
+            <ArrowRight size={15} />
+          </button>
+        </div>
+
+        {/* Live Interactive Mock Window (Clickable Tabs & Real Preview) */}
         <div
-          onClick={handleDemoLogin}
-          className="w-full max-w-5xl rounded-xl bg-[#090d16] border border-white/[0.08] hover:border-indigo-500/40 shadow-[0_20px_70px_-10px_rgba(0,0,0,0.8)] overflow-hidden text-left mb-20 cursor-pointer transition-all duration-300 group"
-          title="Click to launch interactive workspace"
+          className="w-full max-w-5xl rounded-2xl bg-[#070b16] border border-cyan-500/30 shadow-[0_20px_80px_-15px_rgba(6,182,212,0.2)] overflow-hidden text-left mb-20 transition-all duration-300"
         >
-          {/* Window Header Bar */}
-          <div className="h-10 px-4 bg-[#0b0f19] border-b border-white/[0.06] flex items-center justify-between">
+          {/* Window Header Bar with Interactive View Tabs */}
+          <div className="h-12 px-4 bg-[#0a0f1e] border-b border-white/[0.08] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#ef4444]/80 inline-block" />
-              <span className="w-3 h-3 rounded-full bg-[#f59e0b]/80 inline-block" />
-              <span className="w-3 h-3 rounded-full bg-[#10b981]/80 inline-block" />
-              <span className="text-xs text-slate-300 font-mono ml-2">CodeLens Workspace — Any Connected Repository</span>
+              <span className="w-3 h-3 rounded-full bg-[#ef4444]/80 inline-block shadow-sm" />
+              <span className="w-3 h-3 rounded-full bg-[#f59e0b]/80 inline-block shadow-sm" />
+              <span className="w-3 h-3 rounded-full bg-[#10b981]/80 inline-block shadow-sm" />
+              <span className="text-xs text-slate-300 font-mono ml-2 font-semibold">CodeLens Live Demo Session</span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
-              <span className="px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 group-hover:text-indigo-200 transition-colors">
-                Click to Open Interactive IDE →
-              </span>
+
+            {/* Interactive View Toggles */}
+            <div className="flex items-center gap-1 bg-[#040711] p-1 rounded-lg border border-white/10">
+              <button
+                type="button"
+                onClick={() => setActiveTab('chat')}
+                className={`px-3 py-1 rounded text-[11px] font-semibold transition-all flex items-center gap-1.5 ${activeTab === 'chat' ? 'bg-cyan-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              >
+                <Bot size={12} />
+                <span>AI RAG Chat</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('graph')}
+                className={`px-3 py-1 rounded text-[11px] font-semibold transition-all flex items-center gap-1.5 ${activeTab === 'graph' ? 'bg-cyan-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              >
+                <Network size={12} />
+                <span>D3.js Graph</span>
+              </button>
             </div>
           </div>
 
-          {/* 3-Column Workspace Preview */}
-          <div className="grid grid-cols-1 md:grid-cols-12 h-80 sm:h-96 divide-y md:divide-y-0 md:divide-x divide-white/[0.06] font-sans text-xs">
+          {/* 3-Column Interactive Workspace Preview */}
+          <div className="grid grid-cols-1 md:grid-cols-12 h-80 sm:h-96 divide-y md:divide-y-0 md:divide-x divide-white/[0.08] font-sans text-xs">
             {/* Column 1: Explorer */}
-            <div className="hidden md:block col-span-3 bg-[#070a12] p-3 space-y-2 font-mono text-[11px] overflow-hidden">
-              <div className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Explorer</div>
+            <div className="hidden md:block col-span-3 bg-[#050813] p-3 space-y-2 font-mono text-[11px] overflow-hidden">
+              <div className="text-[10px] uppercase font-bold text-cyan-400/80 tracking-wider">AST Symbol Tree</div>
               <div className="space-y-1">
                 <div className="text-slate-300 font-medium flex items-center gap-1.5">📁 src/services</div>
-                <div className="text-indigo-300 bg-indigo-950/40 p-1 rounded border border-indigo-500/30 pl-4 flex items-center justify-between">
+                <div className="text-cyan-300 bg-cyan-950/50 p-1.5 rounded-lg border border-cyan-500/40 pl-3 flex items-center justify-between shadow-sm">
                   <span>📄 search.py</span>
-                  <span className="text-[9px] text-indigo-400 font-sans">Active</span>
+                  <span className="text-[9px] font-bold text-cyan-400 font-sans px-1 rounded bg-cyan-500/20">AST</span>
                 </div>
-                <div className="pl-4 text-slate-400">📄 auth.py</div>
-                <div className="pl-4 text-slate-400">📄 indexer.py</div>
-                <div className="text-slate-300 font-medium flex items-center gap-1.5 pt-1">📁 packages/ast_parser</div>
-                <div className="pl-4 text-slate-400">📄 engine.py</div>
+                <div className="pl-3 text-slate-400 hover:text-slate-200 cursor-pointer transition-colors py-0.5">📄 auth.py</div>
+                <div className="pl-3 text-slate-400 hover:text-slate-200 cursor-pointer transition-colors py-0.5">📄 indexer.py</div>
+                <div className="text-slate-300 font-medium flex items-center gap-1.5 pt-1.5">📁 packages/ast_parser</div>
+                <div className="pl-3 text-slate-400 hover:text-slate-200 cursor-pointer transition-colors py-0.5">📄 tree_sitter.py</div>
               </div>
             </div>
 
             {/* Column 2: Code Editor with Line Highlight */}
-            <div className="col-span-12 md:col-span-5 bg-[#030712] p-4 font-mono text-[11px] space-y-1 overflow-hidden">
-              <div className="text-slate-500 pb-2 mb-2 border-b border-white/[0.06] font-sans flex items-center justify-between text-xs">
-                <span className="text-slate-300 font-mono">src/services/search.py</span>
-                <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                  L12–28 Cited
+            <div className="col-span-12 md:col-span-5 bg-[#02050e] p-4 font-mono text-[11px] space-y-1 overflow-hidden">
+              <div className="text-slate-500 pb-2 mb-2 border-b border-white/[0.08] font-sans flex items-center justify-between text-xs">
+                <span className="text-cyan-300 font-mono font-medium">src/services/search.py</span>
+                <span className="text-[10px] text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  L12–28 Highlighted
                 </span>
               </div>
               <div className="text-slate-600">09  class HybridSearchEngine:</div>
               <div className="text-slate-600">10      """Combines Qdrant dense vectors with AST sparse BM25."""</div>
               <div className="text-slate-600">11</div>
-              <div className="bg-emerald-950/40 border-l-2 border-emerald-500 pl-2 text-emerald-300">
+              <div className="bg-emerald-950/50 border-l-2 border-emerald-400 pl-2 text-emerald-200 transition-colors">
                 12      async def search(self, query: str, repo_id: str) -&gt; list[SearchHit]:
               </div>
-              <div className="bg-emerald-950/40 border-l-2 border-emerald-500 pl-2 text-emerald-300">
+              <div className="bg-emerald-950/50 border-l-2 border-emerald-400 pl-2 text-emerald-200 transition-colors">
                 13          dense_vec = await self.provider.embed([query])
               </div>
-              <div className="bg-emerald-950/40 border-l-2 border-emerald-500 pl-2 text-emerald-300">
+              <div className="bg-emerald-950/50 border-l-2 border-emerald-400 pl-2 text-emerald-200 transition-colors">
                 14          return await self._reciprocal_rank_fusion(dense_vec)
               </div>
               <div className="text-slate-600">15</div>
@@ -308,27 +337,40 @@ export const LoginPage: React.FC = () => {
             </div>
 
             {/* Column 3: AI Assistant Streaming Panel */}
-            <div className="hidden md:block col-span-4 bg-[#090d16] p-3 space-y-3 font-sans overflow-hidden">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-200">
-                <Bot size={14} className="text-indigo-400" />
-                <span>CodeLens AI</span>
-                <span className="text-[10px] text-indigo-400 font-mono bg-indigo-950/60 px-1 rounded">Gemini 3.6 Flash</span>
+            <div className="hidden md:block col-span-4 bg-[#050813] p-4 space-y-3 font-sans overflow-hidden">
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                  <Bot size={15} className="text-cyan-400" />
+                  <span>CodeLens AI Stream</span>
+                </div>
+                <span className="text-[10px] text-cyan-300 font-mono bg-cyan-950/80 border border-cyan-500/30 px-1.5 py-0.5 rounded-md">
+                  Gemini 3.8 Flash
+                </span>
               </div>
 
-              {/* Citation badge */}
-              <div className="p-2 rounded-lg bg-indigo-950/40 border border-indigo-500/30 text-[11px] text-slate-200 space-y-1">
-                <div className="text-[10px] font-bold text-indigo-300 flex items-center justify-between">
-                  <span>Citation #1</span>
+              {/* Interactive Clickable Citation Cards */}
+              <div
+                onClick={() => setActiveCitation(1)}
+                className={`p-2.5 rounded-xl border transition-all cursor-pointer ${activeCitation === 1 ? 'bg-cyan-950/50 border-cyan-400 shadow-md shadow-cyan-500/20' : 'bg-white/[0.02] border-white/10 hover:border-white/20'}`}
+              >
+                <div className="text-[10px] font-bold text-cyan-300 flex items-center justify-between mb-1">
+                  <span className="flex items-center gap-1">
+                    <Sparkles size={11} /> Citation #1
+                  </span>
                   <span className="font-mono text-slate-400">search.py:12-28</span>
                 </div>
-                <p className="text-slate-300 leading-relaxed text-[11px]">
-                  The <code className="text-indigo-300 bg-black/40 px-1 rounded">search()</code> method executes hybrid retrieval across any indexed repository.
+                <p className="text-slate-200 leading-relaxed text-[11px]">
+                  Hybrid retrieval uses <code className="text-cyan-300 bg-black/60 px-1 py-0.5 rounded">RRF (k=60)</code> fusing Qdrant HNSW and BM25 keywords.
                 </p>
               </div>
 
-              <div className="text-slate-400 text-[11px] leading-relaxed">
-                Click to explore full streaming chat with clickable line citations and Monaco editor jumping.
-              </div>
+              <button
+                onClick={handleDemoLogin}
+                className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer mt-3"
+              >
+                <span>Try Live Interactive Chat</span>
+                <ArrowRight size={13} />
+              </button>
             </div>
           </div>
         </div>

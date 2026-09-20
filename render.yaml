@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: codelens-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn apps.api.app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.12.0

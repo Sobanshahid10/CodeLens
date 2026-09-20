@@ -101,7 +101,7 @@ async def chat_stream_endpoint(
             hits = await search_engine.search(
                 query=body.message,
                 repo_id=str(repo_id),
-                top_k=5,
+                top_k=10,
             )
         except Exception:
             hits = []
@@ -127,20 +127,27 @@ async def chat_stream_endpoint(
             header = f"--- Citation [{i}] {loc} ({func_name}) ---"
             context_blocks.append(f"{header}\n{hit.source_code}\n")
         context_text = (
-            "\n".join(context_blocks) if context_blocks else "No direct matching code found."
+            "\n".join(context_blocks) if context_blocks else "No direct matching code found in vector store."
         )
 
         system_prompt = (
-            "You are CodeLens AI, an expert software architecture and code analysis assistant. "
-            "Analyze the codebase using the provided retrieved code context. "
-            "Always reference file paths and line numbers when discussing code."
+            "You are CodeLens AI, an expert codebase intelligence engine.\n"
+            "RESPONSE GUIDELINES:\n"
+            "1. Deliver a COMPLETE and ACCURATE technical explanation that gives full understanding.\n"
+            "2. Structure your answer cleanly:\n"
+            "   - **Overview**: 1-2 sentences explaining the core architecture and direct answer.\n"
+            "   - **Key Mechanisms**: 3-4 structured bullet points explaining the concrete data flow, logic, algorithms, or configurations.\n"
+            "3. Always cite exact file paths and line ranges (e.g. `apps/api/app/services/retrieval.py:L15-L42`).\n"
+            "4. Avoid unnecessary fluff, chit-chat, ASCII diagrams, or repetitive text. Keep the tone authoritative, technical, and clear (~130-180 words)."
         )
 
         messages = [
             {
                 "role": "user",
                 "content": (
-                    f"Relevant Code Context:\n{context_text}\n\nUser Question:\n{body.message}"
+                    f"Codebase Context:\n{context_text}\n\n"
+                    f"User Question: {body.message}\n\n"
+                    f"Provide a clear, complete technical explanation with an overview, key mechanisms with exact line citations, and balanced detail."
                 ),
             }
         ]
