@@ -28,7 +28,9 @@
 
 ---
 
-<img src="docs/screenshots/01-landing-page.png" alt="CodeLens — Landing Page & Repository Ingestion" width="100%" />
+<a href="docs/screenshots/01-landing-page.png" title="🔍 CodeLens Landing Page — Click to view full resolution">
+  <img src="docs/screenshots/01-landing-page.png" alt="CodeLens — Landing Page & Repository Ingestion" width="100%" />
+</a>
 <br/><sub><b>Landing Page</b> — AST semantic intelligence banner with one-click GitHub repository ingestion and interactive demo launcher.</sub>
 
 <br/><br/>
@@ -36,15 +38,21 @@
 <table>
   <tr>
     <td width="33%" align="center">
-      <img src="docs/screenshots/02-features-preview.png" alt="CodeLens — Feature Highlights & Interactive Demo" width="100%" />
+      <a href="docs/screenshots/02-features-preview.png" title="🔍 Feature Highlights — Click to expand full resolution">
+        <img src="docs/screenshots/02-features-preview.png" alt="CodeLens — Feature Highlights & Interactive Demo" width="100%" />
+      </a>
       <br/><sub><b>Feature Highlights</b> — Interactive 3-panel preview, SSE streaming chat, and D3.js dependency graph.</sub>
     </td>
     <td width="33%" align="center">
-      <img src="docs/screenshots/03-dashboard.png" alt="CodeLens — Repository Metrics Dashboard" width="100%" />
+      <a href="docs/screenshots/03-dashboard.png" title="🔍 Repository Dashboard — Click to expand full resolution">
+        <img src="docs/screenshots/03-dashboard.png" alt="CodeLens — Repository Metrics Dashboard" width="100%" />
+      </a>
       <br/><sub><b>Repository Dashboard</b> — Multi-repo management, vector retrieval latency, and AST chunk counters.</sub>
     </td>
     <td width="33%" align="center">
-      <img src="docs/screenshots/04-workspace.png" alt="CodeLens — Full 3-Panel Monaco IDE Workspace" width="100%" />
+      <a href="docs/screenshots/04-workspace.png" title="🔍 Monaco AI Workspace — Click to expand full resolution">
+        <img src="docs/screenshots/04-workspace.png" alt="CodeLens — Full 3-Panel Monaco IDE Workspace" width="100%" />
+      </a>
       <br/><sub><b>AI Workspace</b> — 3-panel Monaco editor with live AST symbol tree, Gemini chat, and line-level citations.</sub>
     </td>
   </tr>
