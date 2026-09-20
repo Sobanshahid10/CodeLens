@@ -339,7 +339,7 @@ CodeLens/
 **Muhammad Soban**
 
 [![GitHub](https://img.shields.io/badge/GitHub-Sobanshahid10-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Sobanshahid10)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Muhammad_Soban-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/muhammadsoban10)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Muhammad_Soban-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/muhammad-soban-shahid/)
 
 *Building high-performance, production-grade AI and developer tooling systems.*
 
