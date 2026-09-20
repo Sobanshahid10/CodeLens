@@ -28,28 +28,27 @@
 
 ---
 
-<img src="docs/screenshots/01-landing-page.png" alt="CodeLens — Landing Page" width="100%" />
-<br/><sub><b>Landing Page</b> — AST Semantic Intelligence banner with GitHub URL ingestion, quick-repo pills, and live interactive demo workspace launcher.</sub>
+<img src="docs/screenshots/01-landing-page.png" alt="CodeLens — Landing Page & Repository Ingestion" width="100%" />
+<br/><sub><b>Landing Page</b> — AST semantic intelligence banner with one-click GitHub repository ingestion and interactive demo launcher.</sub>
 
 <br/><br/>
 
 <table>
   <tr>
-    <td width="50%" align="center">
-      <img src="docs/screenshots/02-features-preview.png" alt="CodeLens Feature Preview — 3-Panel Workspace with AI RAG Chat" width="100%" />
-      <br/><sub><b>3-Panel Workspace Preview</b> — Monaco file tree, AST-highlighted code viewer, and live SSE AI chat panel with citation cards. Below: SSE Streaming Chat, D3.js Dependency Graph, and Monaco Line Highlighting feature callouts.</sub>
+    <td width="33%" align="center">
+      <img src="docs/screenshots/02-features-preview.png" alt="CodeLens — Feature Highlights & Interactive Demo" width="100%" />
+      <br/><sub><b>Feature Highlights</b> — Interactive 3-panel preview, SSE streaming chat, and D3.js dependency graph.</sub>
     </td>
-    <td width="50%" align="center">
-      <img src="docs/screenshots/03-dashboard.png" alt="CodeLens Dashboard — Connected Repositories & Metrics" width="100%" />
-      <br/><sub><b>Repository Dashboard</b> — Real-time system metrics (Indexed Repos, AST Chunks, Active LLM Provider, Vector Retrieval latency), connected repository cards with AST-Ready status, and sample open-source repo explorer.</sub>
+    <td width="33%" align="center">
+      <img src="docs/screenshots/03-dashboard.png" alt="CodeLens — Repository Metrics Dashboard" width="100%" />
+      <br/><sub><b>Repository Dashboard</b> — Multi-repo management, vector retrieval latency, and AST chunk counters.</sub>
+    </td>
+    <td width="33%" align="center">
+      <img src="docs/screenshots/04-workspace.png" alt="CodeLens — Full 3-Panel Monaco IDE Workspace" width="100%" />
+      <br/><sub><b>AI Workspace</b> — 3-panel Monaco editor with live AST symbol tree, Gemini chat, and line-level citations.</sub>
     </td>
   </tr>
 </table>
-
-<br/>
-
-<img src="docs/screenshots/04-workspace.png" alt="CodeLens — Full 3-Panel Monaco IDE Workspace" width="100%" />
-<br/><sub><b>Full AI Workspace</b> — VS Code Monaco editor with live file tree, AST symbol tree navigation, AI Assistant panel powered by Gemini 3.6 Flash with suggested questions and real-time streaming answers and citations.</sub>
 
 </div>
 
