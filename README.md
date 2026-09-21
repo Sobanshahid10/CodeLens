@@ -126,48 +126,48 @@ Modern codebases are vast, deeply interconnected systems where tracing a single 
 
 ```mermaid
 graph TB
-    subgraph Frontend["React 18 + Vite Frontend (Port 3000)"]
-        A[3-Panel Workspace\nTree | Monaco | Chat]
+    subgraph FE["React 18 + Vite Frontend — Port 3000"]
+        A["3-Panel Workspace: Tree · Monaco · Chat"]
         B[D3.js Dependency Graph]
         C[WebSocket Indexing Progress]
         D[SSE Streaming Chat + Citations]
     end
 
-    subgraph Gateway["FastAPI Async Gateway (Port 8000)"]
-        E[GitHub OAuth + JWT Auth\n7-day tokens]
-        F[PostgreSQL RLS\nTenant Injection]
-        G[Redis Sliding-Window\nRate Limiter]
+    subgraph GW["FastAPI Async Gateway — Port 8000"]
+        E["GitHub OAuth + JWT Auth, 7-day tokens"]
+        F["PostgreSQL RLS Tenant Injection"]
+        G["Redis Sliding-Window Rate Limiter"]
     end
 
-    subgraph Workers["Celery Worker Pool"]
+    subgraph WK["Celery Worker Pool"]
         H[Repository Clone]
-        I[AST Parallel Parse\nTree-Sitter]
-        J[Embed & Upsert\nto Qdrant]
+        I["AST Parallel Parse — Tree-Sitter"]
+        J["Embed & Upsert to Qdrant"]
     end
 
-    subgraph Storage["Persistent Storage"]
-        K[(PostgreSQL 16\npgvector + RLS\nPort 5432)]
-        L[(Redis 7\nLRU 512 MB\nPort 6379)]
-        M[(Qdrant Vector DB\nHNSW + BM25\nPort 6333)]
+    subgraph ST["Persistent Storage"]
+        K[("PostgreSQL 16 + pgvector — Port 5432")]
+        L[("Redis 7 LRU 512 MB — Port 6379")]
+        M[("Qdrant Vector DB HNSW+BM25 — Port 6333")]
     end
 
-    subgraph Observability["Observability"]
-        N[Prometheus\nPort 9090]
-        O[Grafana\nPort 3001]
-        P[Flower\nPort 5555]
+    subgraph OB["Observability"]
+        N["Prometheus — Port 9090"]
+        O["Grafana — Port 3001"]
+        P["Flower — Port 5555"]
     end
 
-    Frontend -->|HTTPS / WSS / SSE| Gateway
-    Gateway --> K
-    Gateway --> L
-    Gateway -->|Dispatch Jobs| Workers
-    Workers --> I
-    Workers --> J
+    FE -- "HTTPS / WSS / SSE" --> GW
+    GW --> K
+    GW --> L
+    GW -- "Dispatch Jobs" --> WK
+    WK --> I
+    WK --> J
     J --> M
-    Gateway -->|Hybrid RAG Query| M
-    Gateway --> N
+    GW -- "Hybrid RAG Query" --> M
+    GW --> N
     N --> O
-    Workers --> P
+    WK --> P
 ```
 
 ---
