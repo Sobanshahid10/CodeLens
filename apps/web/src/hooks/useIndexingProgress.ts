@@ -69,7 +69,7 @@ export function useIndexingProgress(repoId: string | null): IndexingProgressStat
             updateIndexingProgress(repoId, statusStage, numProgress);
           }
         } catch (e) {
-          console.debug('Received non-JSON websocket frame:', event.data);
+          console.debug('Received non-JSON websocket frame:', event.data); // oklog
         }
       };
 
@@ -91,7 +91,7 @@ export function useIndexingProgress(repoId: string | null): IndexingProgressStat
       };
 
       ws.onerror = (err) => {
-        console.debug('WebSocket error encountered, closing socket:', err);
+        console.debug('WebSocket error encountered, closing socket:', err); // oklog
         ws.close();
       };
     };

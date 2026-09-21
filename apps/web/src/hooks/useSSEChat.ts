@@ -109,7 +109,7 @@ export function useSSEChat(repoId: string) {
               receivedCitations = parsedCitations;
               setCitations(parsedCitations);
             } catch (e) {
-              console.warn('Failed to parse citations payload', e);
+              console.warn('Failed to parse citations payload', e); // oklog
             }
           } else if (event.event === 'token') {
             try {

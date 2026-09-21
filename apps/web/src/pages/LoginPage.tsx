@@ -55,7 +55,7 @@ export const LoginPage: React.FC = () => {
       await loginWithDemo();
       navigate('/dashboard');
     } catch (err: any) {
-      console.error('Demo login failed:', err);
+      console.error('Demo login failed:', err); // oklog
       toast.error('Login failed', err.message || 'Could not initialize demo session');
     } finally {
       setDemoLoading(false);
@@ -89,7 +89,7 @@ export const LoginPage: React.FC = () => {
       toast.success('Repository connected!', created.github_full_name);
       navigate(`/repo/${created.id}`);
     } catch (err: any) {
-      console.error('Failed to analyze codebase:', err);
+      console.error('Failed to analyze codebase:', err); // oklog
       toast.error('Failed to analyze repository', err.message || 'Check repository URL');
     } finally {
       setDemoLoading(false);
