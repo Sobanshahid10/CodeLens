@@ -7,43 +7,17 @@ on:
 
 jobs:
   deploy:
+    name: Trigger Render Deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push API Docker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: infra/docker/api/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/api:latest
-            ghcr.io/${{ github.repository }}/api:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Trigger Cloud Deploy Webhook (Render / Railway)
+      - name: Trigger Render Deploy Hook
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
-            echo "Triggering Render deploy webhook..."
-            curl -f -X POST "$RENDER_DEPLOY_HOOK"
-          elif [ -n "$RAILWAY_TOKEN" ]; then
-            echo "Triggering Railway deployment..."
-            npx @railway/cli up --service api --detach
-          else
-            echo "No external deployment webhook or token configured; image pushed to GHCR successfully."
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "⚠️  RENDER_DEPLOY_HOOK secret not set — skipping deploy trigger."
+            echo "Add it at: Settings → Secrets → Actions → RENDER_DEPLOY_HOOK"
+            exit 0
           fi
+          echo "🚀 Triggering Render deploy..."
+          curl -f -s -X POST "$RENDER_DEPLOY_HOOK" && echo "✅ Deploy triggered." || echo "❌ Deploy hook failed."
