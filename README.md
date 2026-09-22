@@ -89,7 +89,6 @@
 - [Troubleshooting](#-troubleshooting)
 - [Security](#-security)
 - [Contributing](#-contributing)
-- [Roadmap](#-roadmap)
 - [Author & Developer](#-author--developer)
 - [License](#-license)
 
@@ -583,29 +582,6 @@ Contributions, bug reports, and feature requests are welcome!
 4. **Push** and open a **Pull Request** against `main`
 
 Please ensure `make lint` and `make test` pass locally before opening a PR. The CI pipeline will enforce the same checks.
-
----
-
-## 🗺️ Roadmap
-
-| Status | Feature |
-|:---:|---|
-| ✅ | AST-aware chunking (8+ Tree-Sitter grammars) |
-| ✅ | Hybrid dense + sparse retrieval (RRF k=60) |
-| ✅ | SSE streaming RAG chat with line-level citations |
-| ✅ | D3.js force-directed dependency graph |
-| ✅ | PostgreSQL RLS multi-tenancy |
-| ✅ | Prometheus + Grafana observability |
-| ✅ | RAGAS ground-truth evaluation pipeline |
-| 🔄 | Support for private GitHub repositories (fine-grained PAT) |
-| 🔄 | GitLab & Bitbucket repository ingestion |
-| 🔄 | Multi-turn conversational memory (per-session context window) |
-| 🔄 | Agent-based code refactoring suggestions |
-| 📋 | Self-hosted embedding models (sentence-transformers) |
-| 📋 | VS Code extension for inline CodeLens queries |
-| 📋 | Kubernetes Helm chart for production deployment |
-
-> ✅ = Shipped · 🔄 = In progress · 📋 = Planned
 
 ---
 
