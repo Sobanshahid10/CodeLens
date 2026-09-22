@@ -14,6 +14,8 @@
 [![Docker](https://img.shields.io/badge/Docker-9_Services-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://codelens-hub.vercel.app)
+[![Backend](https://img.shields.io/badge/API-Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://codelens-pesm.onrender.com/docs)
 
 <p align="center">
   <b>Turn any multi-thousand file repository into an interactive intelligence workspace. AST-aware chunking, hybrid dense/sparse vector retrieval, line-level streaming citations, and a force-directed D3.js dependency graph — all in one 3-panel Monaco editor workspace.</b>
@@ -32,6 +34,8 @@
 </p>
 
 ---
+
+> 🚀 **[Live Demo →](https://codelens-hub.vercel.app)** &nbsp;|&nbsp; 📡 **[API Docs →](https://codelens-pesm.onrender.com/docs)** &nbsp;|&nbsp; 🐙 **[GitHub →](https://github.com/Sobanshahid10/CodeLens)**
 
 <a href="docs/screenshots/01-landing-page.png" title="🔍 CodeLens Landing Page — Click to view full resolution">
   <img src="docs/screenshots/01-landing-page.png" alt="CodeLens — Landing Page & Repository Ingestion" width="100%" />
@@ -69,6 +73,7 @@
 
 ## 📑 Table of Contents
 
+- [Live Deployment](#-live-deployment)
 - [Overview](#-overview)
 - [Key Features](#-key-features)
 - [System Architecture](#-system-architecture)
@@ -87,6 +92,18 @@
 - [Roadmap](#-roadmap)
 - [Author & Developer](#-author--developer)
 - [License](#-license)
+
+---
+
+## 🌐 Live Deployment
+
+| Environment | URL | Status |
+|---|---|---|
+| **Frontend (Vercel)** | [codelens-hub.vercel.app](https://codelens-hub.vercel.app) | ✅ Production |
+| **Backend API (Render)** | [codelens-pesm.onrender.com](https://codelens-pesm.onrender.com) | ✅ Production |
+| **Interactive API Docs** | [codelens-pesm.onrender.com/docs](https://codelens-pesm.onrender.com/docs) | ✅ Live Swagger UI |
+
+> **Note**: The Render backend may take ~30 seconds to wake from cold start on the free tier.
 
 ---
 
