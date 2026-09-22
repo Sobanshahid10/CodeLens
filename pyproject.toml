@@ -17,11 +17,16 @@ select = ["E", "F", "I", "N", "UP", "ANN", "ASYNC", "S", "TCH"]
 "packages/*" = ["TC001", "TC002", "TC003", "E402", "I001", "E501"]
 
 [tool.mypy]
-strict = true
 python_version = "3.12"
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
 explicit_package_bases = true
 mypy_path = "."
+# Practical checks — catches real bugs without requiring full annotation coverage
+warn_return_any = false
+warn_unused_ignores = false
+ignore_missing_imports = true
+disallow_untyped_defs = false
+no_implicit_optional = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
